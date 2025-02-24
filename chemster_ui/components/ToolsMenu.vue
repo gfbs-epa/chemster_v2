@@ -5,17 +5,27 @@
       <v-btn v-if="true" color="primary" size="large" icon>
         <v-icon>mdi-plus</v-icon>
         <v-tooltip activator="parent" location="start" text="Create Workspace" />
+        <v-dialog activator="parent">
+          <v-card>
+            <v-card-title>Create Workspace</v-card-title>
+            <v-card-text>
+              <v-form>
+                <v-text-field label="New Workspace Name" />
+              </v-form>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
       </v-btn>
       <v-btn v-if="collectionsStore.workspaces.length > 0" color="primary" size="large" icon>
-        <v-icon>mdi-swap-horizontal</v-icon>
-        <v-tooltip activator="parent" location="start" text="Switch Workspace" />
+        <v-icon>mdi-cursor-default-click</v-icon>
+        <v-tooltip activator="parent" location="start" text="Select Workspace" />
       </v-btn>
       <v-btn v-if="!!collectionsStore.currentWorkspaceId" color="primary" size="large" icon>
         <v-icon>mdi-note-plus</v-icon>
         <v-tooltip activator="parent" location="start" text="Add Lists" />
       </v-btn>
       <v-btn v-if="collectionsStore.workspaceLists.length > 0" color="primary" size="large" icon>
-        <v-icon>mdi-note-text</v-icon>
+        <v-icon>mdi-note-search</v-icon>
         <v-tooltip activator="parent" location="start" text="Select Lists" />
       </v-btn>
     </v-speed-dial>
