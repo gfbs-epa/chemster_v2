@@ -1,3 +1,5 @@
+"""Load environment variables and define constants in one place."""
+
 import os
 
 from dotenv import load_dotenv

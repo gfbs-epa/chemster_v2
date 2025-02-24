@@ -1,3 +1,5 @@
+"""Define REST API endpoint for chemical data."""
+
 import logging
 
 from flask import request, abort
@@ -8,8 +10,8 @@ from sqlalchemy.exc import IntegrityError
 from config import db
 from constants import REST_API_ENDPOINT
 from models import Collection
-from schemas import CollectionSchema
-from util import query_param_bool
+from schemas import CollectionSchema # pylint: disable=import-error
+from util import query_param_bool # pylint: disable=import-error
 
 logger = logging.getLogger(__name__)
 
@@ -17,21 +19,35 @@ COLLECTIONS_ENDPOINT = f'{REST_API_ENDPOINT}/collections'
 collection_schema = CollectionSchema()
 collections_schema = CollectionSchema(many=True)
 
+
 class CollectionsResource(Resource):
-    # Route GET requests
+    """Route REST API calls to operate on collection data."""
+
+
     @jwt_required()
     def get(self):
+        """Route GET requests on collections endpoint."""
+
         super_id = request.args.get('super_id')
         recursive = request.args.get('recursive', default=False, type=query_param_bool)
         current_user_id = int(get_jwt_identity())
         return self._get_collections(current_user_id, super_id, recursive), 200
 
-    # Get collections (without query params, lists all collections in database)
-    ## Optional query param name = get a single collection by name (guaranteed unique at database level)
-    ## Optional query param super_id = list only collections from a single supercollection
-    ## Optional query param recursive = list all collections recursively from a single supercollection
+
     def _get_collections(self, current_user_id, super_id, recursive):
-        # Start with a global select statement to get collections filtered by current user
+        """
+        Get collections according to provided query parameters.
+        
+        Parameters:
+            current_user_id (int): ID of current user retrieved from JWT.
+            super_id (int): ID of supercollection to retrieve from, if provided.
+            recursive (bool): Whether to retrieve collections recursively or not.
+
+        Returns:
+            str: JSON array of collections retrieved.
+        """
+
+        # Start with a global select statement to get only collections owned by current user
         stmt = db.select(Collection).filter_by(owner_id=current_user_id)
         if super_id:
             try:
@@ -44,25 +60,27 @@ class CollectionsResource(Resource):
 
             # Compose either direct query or recursive query using CTE
             if recursive:
-                logger.info(f'Retrieving collections recursively from supercollection ID {super_id} and subcollections')
+                logger.info('Retrieving collections recursively from supercollection ID %s and subcollections', super_id)
                 cte = db.select(Collection).filter_by(super_id=super_id).cte(name='cte', recursive=True)
                 union = cte.union_all(db.select(Collection).filter_by(super_id=cte.c.id))
                 stmt = stmt.join(union, union.c.id == Collection.id).distinct()
             else:
-                logger.info(f'Retrieving collections from supercollection ID {super_id}')
+                logger.info('Retrieving collections from supercollection ID %s', super_id)
                 stmt = stmt.filter_by(super_id=super_id)
         else:
-            logger.info(f'Retrieving all collections')
+            logger.info('Retrieving all collections')
 
         # Execute composed query
         collections = db.session.execute(stmt).scalars()
         collections_json = collections_schema.dump(collections)
         logger.info('Collections retrieved')
         return collections_json
-    
-    # Insert a new collection from POST request
+
+
     @jwt_required()
     def post(self):
+        """Route POST requests on collections endpoint."""
+        
         collection = collection_schema.load(request.get_json())
         # Assign ownership to current user based on JWT
         collection.owner_id = int(get_jwt_identity())
@@ -72,7 +90,7 @@ class CollectionsResource(Resource):
             db.session.commit()
         except IntegrityError as ie:
             # Check for duplicate insertion
-            logger.warning(f'SQLAlchemy Integrity Error: {ie}')
+            logger.warning('SQLAlchemy Integrity Error: %s', ie)
             abort(409, message=f'Error creating collection {collection.name}: collection already exists')
         else:
             return collection, 201

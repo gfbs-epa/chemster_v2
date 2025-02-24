@@ -1,3 +1,5 @@
+"""Configure a Flask app and run locally if used as main."""
+
 import logging
 
 from flask import Flask
@@ -9,10 +11,12 @@ from auth import init_auth
 from constants import CHEMSTER_UI_URL, API_ENDPOINT, SQLITE_DB_PATH
 from resources.collections_resource import CollectionsResource, COLLECTIONS_ENDPOINT
 from resources.chemicals_resource import ChemicalsResource, CHEMICALS_ENDPOINT
-from util import abs_path
+from util import abs_path # pylint: disable=import-error
 
-# Your garden-variety Flask app initializer
+
 def create_app(sqlalchemy_database_uri):
+    """Configure a Flask app and attach SQLAlchemy, Marshmallow, CORS, and JWT instances."""
+
     # Set up logging to file
     logging.basicConfig(
         level=logging.DEBUG,
@@ -44,7 +48,8 @@ def create_app(sqlalchemy_database_uri):
 
     return app
 
+
 if __name__ == '__main__':
-    sqlalchemy_database_uri = f'sqlite:///{abs_path(SQLITE_DB_PATH)}'
-    app = create_app(sqlalchemy_database_uri)
-    app.run(debug=True)
+    uri = f'sqlite:///{abs_path(SQLITE_DB_PATH)}'
+    app_created = create_app(uri)
+    app_created.run(debug=True)

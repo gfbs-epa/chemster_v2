@@ -1,3 +1,5 @@
+"""Define REST API endpoint for chemical data."""
+
 import logging
 
 from flask import request, abort
@@ -7,18 +9,23 @@ from flask_restful import Resource
 from config import db
 from constants import REST_API_ENDPOINT
 from models import Chemical, Collection, CollectionChemical
-from schemas import ChemicalSchema
-from util import query_param_bool
+from schemas import ChemicalSchema # pylint: disable=import-error
+from util import query_param_bool # pylint: disable=import-error
 
 logger = logging.getLogger(__name__)
 
 CHEMICALS_ENDPOINT = f'{REST_API_ENDPOINT}/chemicals'
 chemicals_schema = ChemicalSchema(many=True)
 
+
 class ChemicalsResource(Resource):
-    # Route GET requests
+    """Route REST API calls to operate on chemical data."""
+
+
     @jwt_required()
     def get(self):
+        """Route GET requests on chemicals endpoint."""
+
         collection_ids = request.args.getlist('collection_id')
         if not collection_ids:
             # Check collection ID provided - there should be no way to obtain the unfiltered chemical list
@@ -27,9 +34,20 @@ class ChemicalsResource(Resource):
         current_user_id = int(get_jwt_identity())
         return self._get_chemicals_by_collection_ids(current_user_id, collection_ids, recursive), 200
 
-    # List all chemicals belonging to one or more collections
-    ## Optional query param recursive = list all chemicals recursively from all subcollections
+
     def _get_chemicals_by_collection_ids(self, current_user_id, collection_ids, recursive):
+        """
+        Get chemicals according to provided query parameters.
+        
+        Parameters:
+            current_user_id (int): ID of current user retrieved from JWT.
+            collection_ids (int[]): IDs of collections to retrieve from, if provided.
+            recursive (bool): Whether to retrieve from collections recursively or not.
+
+        Returns:
+            str: JSON array of chemicals retrieved.
+        """
+
         for collection_id in collection_ids:
             try:
                 # Type check ALL collection_id query parameters
@@ -43,19 +61,20 @@ class ChemicalsResource(Resource):
         collection_ids_str = ', '.join(collection_ids)
         # Start with a global select/join statement to get chemicals and collection information
         # and filter by ownership
-        stmt = db.select(Chemical).join(CollectionChemical).join(Collection).filter_by(owner_id=current_user_id)
+        stmt = db.select(Chemical).join(CollectionChemical).join(
+            Collection).filter_by(owner_id=current_user_id)
         # Compose either direct query or recursive query using CTE
         if recursive:
-            logger.info(f'Retrieving chemicals recursively from collection ID {collection_ids_str} and subcollections')
+            logger.info('Retrieving chemicals recursively from collection ID %s and subcollections', collection_ids_str)
             cte = db.select(Collection).filter(Collection.id.in_(collection_ids)).cte(name='cte', recursive=True)
             union = cte.union_all(db.select(Collection).filter_by(super_id=cte.c.id))
             stmt = stmt.join(union, union.c.id == CollectionChemical.collection_id).distinct()
         else:
-            logger.info(f'Retrieving chemicals from collection ID {collection_ids_str}')
+            logger.info('Retrieving chemicals from collection ID %s', collection_ids_str)
             stmt = stmt.filter(CollectionChemical.collection_id.in_(collection_ids)).distinct()
 
         # Execute composed query
         chemicals = db.session.execute(stmt).scalars()
         chemicals_json = chemicals_schema.dump(chemicals)
-        logger.info(f'Chemicals retrieved')
+        logger.info('Chemicals retrieved')
         return chemicals_json
