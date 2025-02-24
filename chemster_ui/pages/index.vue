@@ -2,16 +2,17 @@
   <CollectionsDrawer />
   <v-main>
     <v-container fluid>
-        <v-tabs v-model="tab" bg-color="primary">
-          <v-tab value="table">Table</v-tab>
-        </v-tabs>
-        <v-tabs-window v-model="tab">
-          <v-tabs-window-item key="table" value="table">
-            <v-sheet>
-              <ChemicalsTable />
-            </v-sheet>
-          </v-tabs-window-item>
-        </v-tabs-window>
+      <v-tabs v-model="tab" bg-color="primary">
+        <v-tab value="table">Table</v-tab>
+      </v-tabs>
+      <v-tabs-window v-model="tab">
+        <v-tabs-window-item key="table" value="table">
+          <v-sheet>
+            <ChemicalsTable />
+          </v-sheet>
+        </v-tabs-window-item>
+      </v-tabs-window>
+      <ToolsMenu />
     </v-container>
   </v-main>
 </template>
