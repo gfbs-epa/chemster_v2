@@ -29,12 +29,21 @@ export const useCollectionsStore = defineStore('collections',  () => {
     currentListIds.value = []
   }
 
+  // Helper to reset whole store when user logs out
+  function reset() {
+    workspaces.value = Array<Collection>()
+    currentWorkspaceId.value = null
+    workspaceLists.value = Array<Collection>()
+    currentListIds.value = []
+  }
+
   return {
     workspaces,
     currentWorkspaceId,
     workspaceLists,
     currentListIds,
     fetchWorkspaces, 
-    updateWorkspace
+    updateWorkspace,
+    reset
   }
 })

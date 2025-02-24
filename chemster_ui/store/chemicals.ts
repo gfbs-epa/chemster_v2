@@ -14,5 +14,10 @@ export const useChemicalsStore = defineStore('chemicals',  () => {
     currentChemicals.value = data.value as Array<Chemical>
   }
 
-  return { currentChemicals, fetchChemicals }
+  // Helper to reset whole store when user logs out
+  function reset() {
+    currentChemicals.value = Array<Chemical>()
+  }
+
+  return { currentChemicals, fetchChemicals, reset }
 })

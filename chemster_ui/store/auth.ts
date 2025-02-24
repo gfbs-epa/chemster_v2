@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia'
+import { useChemicalsStore } from './chemicals'
+import { useCollectionsStore } from './collections'
 
 type Credentials = { username: string, password: string }
 type Tokens = { access_token: string, refresh_token: string }
@@ -16,11 +18,11 @@ export const useAuthStore = defineStore('auth',  () => {
   const authenticated = ref(false)
 
   async function register(credentials: Credentials) {
-    await fetchAuth(registerEndpoint, credentials)
+    await auth(registerEndpoint, credentials)
   }
 
   async function login(credentials: Credentials) {
-    await fetchAuth(loginEndpoint, credentials)
+    await auth(loginEndpoint, credentials)
   }
 
   async function refresh() {
@@ -30,7 +32,7 @@ export const useAuthStore = defineStore('auth',  () => {
       accessHeader.value = `Bearer ${response._data?.access_token}`
     } else {
       // If this fails, refresh token is also expired and user has to log in again
-      return clearAuth()
+      return reset()
     }
   }
 
@@ -40,11 +42,11 @@ export const useAuthStore = defineStore('auth',  () => {
     // Revoke refresh token
     await $fetch.raw(logoutEndpoint, { headers: { Authorization: refreshHeader.value } })
     // Clear store data and return to login page
-    return clearAuth()
+    return reset()
   }
 
   // Helper to make either register or login calls, since format is identical
-  async function fetchAuth(endpoint: string, credentials: Credentials) {
+  async function auth(endpoint: string, credentials: Credentials) {
     const response = await $fetch.raw<Tokens>(endpoint, { method: 'POST', body: credentials })
     // Returns 201 for successful user registration, 200 for successful login of existing user
     if (response.status === 201 || response.status === 200) {
@@ -53,15 +55,21 @@ export const useAuthStore = defineStore('auth',  () => {
       accessHeader.value = `Bearer ${response._data?.access_token}`
       refreshHeader.value = `Bearer ${response._data?.refresh_token}`
     } else {
-      return clearAuth()
+      // Reset and force another registration or login attempt
+      return reset()
     }
   }
 
   // Helper to clear authentication store and return to login page on error or logout
-  function clearAuth() {
+  // Also resets other data stores to avoid leaking data between users
+  function reset() {
     authenticated.value = false
     accessHeader.value = ''
     refreshHeader.value = ''
+
+    useCollectionsStore().reset()
+    useChemicalsStore().reset()
+
     return navigateTo('/login')
   }
 
