@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useAuthFetch } from '~/composables/useAuthFetch'
 
 const chemicalsEndpoint = 'api/rest/chemicals'
 export type Chemical = { dtxsid: string }
@@ -9,8 +10,8 @@ export const useChemicalsStore = defineStore('chemicals',  () => {
 
   // Fetch chemicals from back-end
   async function fetchChemicals(collectionIds: number[], recursive: boolean) {
-    const data = await useNuxtApp().$authFetch<Array<Chemical>>(chemicalsEndpoint, { query: { recursive: recursive, collection_id: collectionIds } })
-    currentChemicals.value = data
+    const { data } = await useAuthFetch<Array<Chemical>>(chemicalsEndpoint, { query: { recursive: recursive, collection_id: collectionIds } })
+    currentChemicals.value = data.value as Array<Chemical>
   }
 
   return { currentChemicals, fetchChemicals }

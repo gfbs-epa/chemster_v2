@@ -18,13 +18,9 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '~/store/auth'
-import { useCollectionsStore } from '~/store/collections'
 
 // Check authentication and redirect to login if not
 definePageMeta({ middleware: [() => { if (!useAuthStore().authenticated) { return navigateTo('/login') } }] })
-
-// On mount, fetch all user workspaces from database
-onMounted(async () => { await useCollectionsStore().fetchWorkspaces() })
 
 // Track active tab
 const tab = ref('table')

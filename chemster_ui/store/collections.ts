@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useAuthFetch } from '~/composables/useAuthFetch'
 
 const collectionsEndpoint = 'api/rest/collections'
 type Collection = { id: number, name: string, super_id: number, owner_id: number }
@@ -15,16 +16,16 @@ export const useCollectionsStore = defineStore('collections',  () => {
 
   // Fetch top-level workspaces from back-end
   async function fetchWorkspaces() {
-    const data = await useNuxtApp().$authFetch<Array<Collection>>(`${collectionsEndpoint}/master`)
-    workspaces.value = data
+    const { data } = await useAuthFetch<Array<Collection>>(`${collectionsEndpoint}/master`)
+    workspaces.value = data.value as Array<Collection>
     console.log(data)
   }
 
   // When workspace is changed, fetch available lists from API and clear previous selections
   async function updateWorkspace(workspaceId: number) {
     currentWorkspaceId.value = workspaceId
-    const data = await useNuxtApp().$authFetch<Array<Collection>>(collectionsEndpoint, { query: { super_id: workspaceId } })
-    workspaceLists.value = data
+    const { data } = await useAuthFetch<Array<Collection>>(collectionsEndpoint, { query: { super_id: workspaceId } })
+    workspaceLists.value = data.value as Array<Collection>
     currentListIds.value = []
   }
 
