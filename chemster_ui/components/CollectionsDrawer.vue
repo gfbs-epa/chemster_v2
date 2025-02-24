@@ -43,6 +43,8 @@
 import { useCollectionsStore } from '~/store/collections'
 import { useChemicalsStore } from '~/store/chemicals'
 
+// Just adding a comment so GitHub accepts my indentation fixes
+
 // On mount, fetch all user workspaces from database
 onMounted(async () => { await collectionsStore.fetchWorkspaces() })
 
