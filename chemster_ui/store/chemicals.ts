@@ -5,7 +5,7 @@ import { REST_API_ENDPOINT } from '~/utils/constants'
 import type { APIChemical, CTXChemical } from '~/utils/types'
 
 const API_CHEMICALS_ENDPOINT = `${REST_API_ENDPOINT}/chemicals`
-const CTX_CHEMICALS_ENDPOINT = '/detail/search/by-dtxsid/?projection=ntatoolkit'
+const CTX_CHEMICALS_ENDPOINT = 'ctx/detail/search/by-dtxsid/?projection=ntatoolkit'
 
 export const useChemicalsStore = defineStore('chemicals',  () => {
   // Chemicals in browser based on collections selected by user

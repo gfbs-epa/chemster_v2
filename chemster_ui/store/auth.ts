@@ -22,6 +22,7 @@ export const useAuthStore = defineStore('auth',  () => {
     if (response.status === 200) {
       // Save new generated access token
       accessHeader.value = `Bearer ${response._data?.access_token}`
+      return true
     } else {
       // If this fails, refresh token is also expired and user has to log in again
       return reset()
@@ -45,6 +46,7 @@ export const useAuthStore = defineStore('auth',  () => {
       authenticated.value = true
       accessHeader.value = `Bearer ${response._data?.access_token}`
       refreshHeader.value = `Bearer ${response._data?.refresh_token}`
+      return true
     } else {
       // Reset and force another registration or login attempt
       return reset()
@@ -61,7 +63,8 @@ export const useAuthStore = defineStore('auth',  () => {
     useCollectionsStore().reset()
     useChemicalsStore().reset()
 
-    return navigateTo(UI_LOGIN_ENDPOINT)
+    navigateTo(UI_LOGIN_ENDPOINT)
+    return false
   }
 
   return { authenticated, accessHeader, register, login, refresh, logout }
