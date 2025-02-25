@@ -30,10 +30,10 @@ export const useAuthStore = defineStore('auth',  () => {
 
   async function logout() {
     // Revoke both access and refresh token in separate calls
-    for (const header in [accessHeader, refreshHeader]) {
+    [accessHeader.value, refreshHeader.value].forEach(async (header) => {
       await $fetch.raw(`${API_ENDPOINT}/logout`, { headers: { Authorization: header } })
-    }
-
+    })
+    
     // Clear store data and return to login page
     return reset()
   }
