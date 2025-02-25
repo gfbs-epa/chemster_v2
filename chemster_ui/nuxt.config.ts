@@ -26,10 +26,10 @@ export default defineNuxtConfig({
     // Overridden by .env
     chemsterApiUrl: '',
     masterCollectionId: '',
-    ctxApiKey: '',
     public: {
+      comptoxImageUrl: '',
       ctxApiUrl: '',
-      comptoxImageUrl: ''
+      ctxApiKey: ''
     }
   }
 })

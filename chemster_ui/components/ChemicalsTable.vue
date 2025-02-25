@@ -8,17 +8,21 @@
 
 <script setup lang="ts">
 import { useChemicalsStore } from '~/store/chemicals'
-import type { Chemical } from '~/utils/types'
+import type { CTXChemical } from '~/utils/types'
 
 const config = useRuntimeConfig()
 const chemicalsStore = useChemicalsStore()
 
 const headers = [
-  { title: 'DTXSID', key: 'dtxsid' }, 
+  { title: 'DTXSID', key: 'dtxsid' },
+  { title: 'DTXCID', key: 'dtxcid' },
+  { title: 'Preferred Name', key: 'preferredName' },
+  { title: 'Molecular Formula', key: 'molFormula' },
+  { title: 'Monoisotopic Mass', key: 'monoisotopicMass' },
   { 
     title: 'Structure', 
     key: 'structure', 
-    value: (item: Chemical) => `${config.public.comptoxImageUrl}/${item.dtxsid}` 
+    value: (item: CTXChemical) => `${config.public.comptoxImageUrl}/${item.dtxsid}`
   } 
 ]
 </script>
