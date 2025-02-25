@@ -25,11 +25,10 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Overridden by .env
     chemsterApiUrl: '',
-    chemsterApiUsername: '',
-    chemsterApiPassword: '',
     masterCollectionId: '',
     ctxApiKey: '',
     public: {
+      ctxApiUrl: '',
       comptoxImageUrl: ''
     }
   }
