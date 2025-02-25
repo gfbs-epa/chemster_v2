@@ -10,11 +10,11 @@ export const useAuthStore = defineStore('auth',  () => {
   const authenticated = ref(false)
 
   async function register(credentials: Credentials) {
-    await auth(`${API_ENDPOINT}/register`, credentials)
+    await postCredentials(`${API_ENDPOINT}/register`, credentials)
   }
 
   async function login(credentials: Credentials) {
-    await auth(`${API_ENDPOINT}/login`, credentials)
+    await postCredentials(`${API_ENDPOINT}/login`, credentials)
   }
 
   async function refresh() {
@@ -33,13 +33,12 @@ export const useAuthStore = defineStore('auth',  () => {
     [accessHeader.value, refreshHeader.value].forEach(async (header) => {
       await $fetch.raw(`${API_ENDPOINT}/logout`, { headers: { Authorization: header } })
     })
-    
     // Clear store data and return to login page
     return reset()
   }
 
   // Helper to make either register or login calls, since format is identical
-  async function auth(endpoint: string, credentials: Credentials) {
+  async function postCredentials(endpoint: string, credentials: Credentials) {
     const response = await $fetch.raw<Tokens>(endpoint, { method: 'POST', body: credentials })
     // Returns 201 for successful user registration, 200 for successful login of existing user
     if (response.status === 201 || response.status === 200) {

@@ -11,17 +11,24 @@ export const useChemicalsStore = defineStore('chemicals',  () => {
   // Chemicals in browser based on collections selected by user
   const currentChemicals = ref(Array<CTXChemical>())
 
-  // Fetch chemicals from back-end
+  // Integrate back-end and CTX chemical data fetching
   async function fetchChemicals(collectionIds: number[], recursive: boolean) {
-    const { data: apiData } = await useAPI<Array<APIChemical>>(API_CHEMICALS_ENDPOINT, { query: { recursive: recursive, collection_id: collectionIds } })
-    if (!!apiData) {
-      const { data: ctxData } = useCTX<Array<CTXChemical>>(
-        CTX_CHEMICALS_ENDPOINT,
-        { method: 'POST', body: apiData.value.map((item: APIChemical) => item.dtxsid) }
-      )
-      currentChemicals.value = ctxData.value as Array<CTXChemical>
+    const apiChemicals = await fetchChemicalsFromAPI(collectionIds, recursive)
+    if (apiChemicals != null) {
+      currentChemicals.value = await fetchChemicalsFromCTX(apiChemicals.map((c: APIChemical) => c.dtxsid)) as Array<CTXChemical>
     }
-    
+  }
+
+  // Back-end chemical data fetching
+  async function fetchChemicalsFromAPI(collectionIds: number[], recursive: boolean) {
+    const { data } = await useAPI<Array<APIChemical>>(API_CHEMICALS_ENDPOINT, { query: { recursive: recursive, collection_id: collectionIds } })
+    return data.value
+  }
+
+  // CTX chemical detail data fetching
+  async function fetchChemicalsFromCTX(dtxsids: string[]) {
+    const { data } = useCTX<Array<CTXChemical>>(CTX_CHEMICALS_ENDPOINT, { method: 'POST', body: dtxsids })
+    return data.value
   }
 
   // Helper to reset whole store when user logs out
