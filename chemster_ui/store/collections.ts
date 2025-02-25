@@ -17,24 +17,21 @@ export const useCollectionsStore = defineStore('collections',  () => {
 
   // Fetch top-level workspaces from back-end
   async function fetchWorkspaces() {
-    const { data } = await useAPI<Array<Collection>>(`${COLLECTIONS_ENDPOINT}/master`)
-    workspaces.value = data.value as Array<Collection>
-    console.log(data)
+    const data = await useNuxtApp().$api<Array<Collection>>(`${COLLECTIONS_ENDPOINT}/master`)
+    workspaces.value = data || Array<Collection>()
   }
 
   // When workspace is changed, fetch available lists from API and clear previous selections
-  async function updateWorkspace(workspaceId: number) {
-    currentWorkspaceId.value = workspaceId
-    const { data } = await useAPI<Array<Collection>>(COLLECTIONS_ENDPOINT, { query: { super_id: workspaceId } })
-    workspaceLists.value = data.value as Array<Collection>
-    currentListIds.value = []
+  async function fetchWorkspaceLists() {
+    const data = await useNuxtApp().$api<Array<Collection>>(COLLECTIONS_ENDPOINT, { query: { super_id: currentWorkspaceId.value } })
+    workspaceLists.value = data || Array<Collection>()
   }
 
   // Helper to reset whole store when user logs out
   function reset() {
     workspaces.value = Array<Collection>()
     currentWorkspaceId.value = null
-    workspaceLists.value = Array<Collection>()
+    workspaceLists.value = []
     currentListIds.value = []
   }
 
@@ -44,7 +41,7 @@ export const useCollectionsStore = defineStore('collections',  () => {
     workspaceLists,
     currentListIds,
     fetchWorkspaces, 
-    updateWorkspace,
+    fetchWorkspaceLists,
     reset
   }
 })

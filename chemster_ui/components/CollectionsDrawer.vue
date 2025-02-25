@@ -21,7 +21,7 @@
             <v-form @submit.prevent="handleUpdateLists">
                 <v-select
                   label="Choose Lists"
-                  v-model="existingListIds"
+                  v-model="listIds"
                   :items="collectionsStore.workspaceLists"
                   item-title="name"
                   item-value="id"
@@ -40,8 +40,8 @@
 </template>
 
 <script setup lang="ts">
-import { useCollectionsStore } from '~/store/collections'
 import { useChemicalsStore } from '~/store/chemicals'
+import { useCollectionsStore } from '~/store/collections'
 
 // On mount, fetch all user workspaces from database
 onMounted(async () => { await collectionsStore.fetchWorkspaces() })
@@ -52,31 +52,32 @@ const chemicalsStore = useChemicalsStore()
 
 // Track state of workspace and list selectors
 const workspaceId = ref()
-const existingListIds = ref([])
+const listIds = ref([])
 // Track open panel
 const panel = ref('workspace')
 
-// On button click, save selected workspace and fetch chemicals
+// On button click, save selected workspace
 async function handleUpdateWorkspace() {
-  await collectionsStore.updateWorkspace(workspaceId.value)
+  collectionsStore.currentWorkspaceId = workspaceId.value
+  collectionsStore.currentListIds = []
+  await collectionsStore.fetchWorkspaceLists()
   await fetchAllWorkspaceChemicals()
   // Clear existing list selections to avoid conflict
-  existingListIds.value = []
+  listIds.value = []
   // Jump to existing lists panel
   panel.value = "existingLists"
 }
 
-// On button click, save selected lists and fetch chemicals
+// On button click, save selected lists
 async function handleUpdateLists() {
-  collectionsStore.currentListIds = existingListIds.value
-  if (existingListIds.value.length > 0) {
+  collectionsStore.currentListIds = listIds.value
+  if (collectionsStore.currentListIds.length > 0) {
     await chemicalsStore.fetchChemicals(collectionsStore.currentListIds, false)
   } else {
     await fetchAllWorkspaceChemicals()
   }
 }
 
-// Helper to update chemicals when entire workspace is used
 async function fetchAllWorkspaceChemicals() {
   await chemicalsStore.fetchChemicals([collectionsStore.currentWorkspaceId], true)
 }
