@@ -7,7 +7,8 @@
 </template>
 
 <script setup lang="ts">
-import { type Chemical, useChemicalsStore } from '~/store/chemicals'
+import { useChemicalsStore } from '~/store/chemicals'
+import type { Chemical } from '~/utils/types'
 
 const config = useRuntimeConfig()
 const chemicalsStore = useChemicalsStore()

@@ -21,6 +21,7 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '~/store/auth'
+import { UI_INDEX_ENDPOINT } from '~/utils/constants'
 
 // Load user authentication
 const authStore = useAuthStore()
@@ -49,7 +50,7 @@ async function handleLogin() {
   await authStore.login(credentials)
     .then(async () => {
       loginFailed.value = false
-      await navigateTo('/')
+      await navigateTo(UI_INDEX_ENDPOINT)
     })
     .catch(() => { loginFailed.value = true })
 }
@@ -59,7 +60,7 @@ async function handleRegister() {
   await authStore.register(credentials)
     .then(async () => {
       registerFailed.value = false
-      await navigateTo('/')
+      await navigateTo(UI_INDEX_ENDPOINT)
     })
     .catch(() => { registerFailed.value = true })
 }

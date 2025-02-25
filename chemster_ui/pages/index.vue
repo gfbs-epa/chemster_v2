@@ -19,9 +19,10 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '~/store/auth'
+import { UI_LOGIN_ENDPOINT } from '~/utils/constants'
 
 // Check authentication and redirect to login if not
-definePageMeta({ middleware: [() => { if (!useAuthStore().authenticated) { return navigateTo('/login') } }] })
+definePageMeta({ middleware: [() => { if (!useAuthStore().authenticated) { return navigateTo(UI_LOGIN_ENDPOINT) } }] })
 
 // Track active tab
 const tab = ref('table')

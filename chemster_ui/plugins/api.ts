@@ -3,7 +3,7 @@ import { useAuthStore } from '~/store/auth'
 // Custom fetch plugin to get data from back-end using JWT authentication
 export default defineNuxtPlugin((nuxtApp) => {
   const authStore = useAuthStore()
-  const authFetch = $fetch.create({
+  const api = $fetch.create({
     onRequest({ options }) {
       // If authenticated, set auth header and prepare to retry once if token expired
       if (authStore.authenticated) {
@@ -23,5 +23,5 @@ export default defineNuxtPlugin((nuxtApp) => {
     }
   })
 
-  return { provide: { authFetch } }
+  return { provide: { api } }
 })

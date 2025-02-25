@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
-import { useAuthFetch } from '~/composables/useAuthFetch'
+import { useAPI } from '~/composables/useAPI'
+import { REST_API_ENDPOINT } from '~/utils/constants'
+import type { Collection } from '~/utils/types'
 
-const collectionsEndpoint = 'api/rest/collections'
-type Collection = { id: number, name: string, super_id: number, owner_id: number }
+const COLLECTIONS_ENDPOINT = `${REST_API_ENDPOINT}/collections`
 
 export const useCollectionsStore = defineStore('collections',  () => {
   // All top-level workspaces available in database
@@ -16,7 +17,7 @@ export const useCollectionsStore = defineStore('collections',  () => {
 
   // Fetch top-level workspaces from back-end
   async function fetchWorkspaces() {
-    const { data } = await useAuthFetch<Array<Collection>>(`${collectionsEndpoint}/master`)
+    const { data } = await useAPI<Array<Collection>>(`${COLLECTIONS_ENDPOINT}/master`)
     workspaces.value = data.value as Array<Collection>
     console.log(data)
   }
@@ -24,7 +25,7 @@ export const useCollectionsStore = defineStore('collections',  () => {
   // When workspace is changed, fetch available lists from API and clear previous selections
   async function updateWorkspace(workspaceId: number) {
     currentWorkspaceId.value = workspaceId
-    const { data } = await useAuthFetch<Array<Collection>>(collectionsEndpoint, { query: { super_id: workspaceId } })
+    const { data } = await useAPI<Array<Collection>>(COLLECTIONS_ENDPOINT, { query: { super_id: workspaceId } })
     workspaceLists.value = data.value as Array<Collection>
     currentListIds.value = []
   }
