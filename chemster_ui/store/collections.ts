@@ -15,6 +15,11 @@ export const useCollectionsStore = defineStore('collections',  () => {
   // Lists selected by user in collections panel
   const currentListIds: Ref<number[]> = ref([])
 
+  const currentWorkspaceName = computed(() => {
+    const currentWorkspace = workspaces.value.find(item => item['id'] === currentWorkspaceId.value)
+    return !!currentWorkspace ? currentWorkspace.name : ''
+  })
+
   // Fetch top-level workspaces from back-end
   async function fetchWorkspaces() {
     const data = await useNuxtApp().$api<Array<Collection>>(`${COLLECTIONS_ENDPOINT}/master`)
@@ -38,6 +43,7 @@ export const useCollectionsStore = defineStore('collections',  () => {
   return {
     workspaces,
     currentWorkspaceId,
+    currentWorkspaceName,
     workspaceLists,
     currentListIds,
     fetchWorkspaces, 

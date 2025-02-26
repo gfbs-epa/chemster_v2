@@ -7,7 +7,7 @@ import { API_ENDPOINT, UI_LOGIN_ENDPOINT } from '~/utils/constants'
 export const useAuthStore = defineStore('auth',  () => {
   const accessHeader = ref('')
   const refreshHeader = ref('')
-  const authenticated = ref(false)
+  const currentUsername = ref('')
 
   async function register(credentials: Credentials) {
     await postCredentials(`${API_ENDPOINT}/register`, credentials)
@@ -43,9 +43,9 @@ export const useAuthStore = defineStore('auth',  () => {
     const response = await $fetch.raw<Tokens>(endpoint, { method: 'POST', body: credentials })
     // Returns 201 for successful user registration, 200 for successful login of existing user
     if (response.status === 201 || response.status === 200) {
-      authenticated.value = true
       accessHeader.value = `Bearer ${response._data?.access_token}`
       refreshHeader.value = `Bearer ${response._data?.refresh_token}`
+      currentUsername.value = credentials.username
       return true
     } else {
       // Reset and force another registration or login attempt
@@ -56,9 +56,9 @@ export const useAuthStore = defineStore('auth',  () => {
   // Helper to clear authentication store and return to login page on error or logout
   // Also resets other data stores to avoid leaking data between users
   function reset() {
-    authenticated.value = false
     accessHeader.value = ''
     refreshHeader.value = ''
+    currentUsername.value = ''
 
     useCollectionsStore().reset()
     useChemicalsStore().reset()
@@ -67,5 +67,8 @@ export const useAuthStore = defineStore('auth',  () => {
     return false
   }
 
-  return { authenticated, accessHeader, register, login, refresh, logout }
-})
+  // refreshHeader isn't used elsewhere, but must be exported to be persisted
+  return { accessHeader, refreshHeader, currentUsername, register, login, refresh, logout }
+},
+// Persist authorization state in cookies to avoid logout on every refresh
+{ persist: { storage: piniaPluginPersistedstate.cookies() } })

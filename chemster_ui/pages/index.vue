@@ -1,7 +1,7 @@
 <template>
   <CollectionsDrawer />
   <v-main>
-    <v-container fluid>
+    <v-container fluid fill-height>
       <v-tabs v-model="tab" bg-color="primary">
         <v-tab value="table">Table</v-tab>
       </v-tabs>
@@ -22,7 +22,7 @@ import { useAuthStore } from '~/store/auth'
 import { UI_LOGIN_ENDPOINT } from '~/utils/constants'
 
 // Check authentication and redirect to login if not
-definePageMeta({ middleware: [() => { if (!useAuthStore().authenticated) { return navigateTo(UI_LOGIN_ENDPOINT) } }] })
+definePageMeta({ middleware: [() => { if (useAuthStore().accessHeader === '') { return navigateTo(UI_LOGIN_ENDPOINT) } }] })
 
 // Track active tab
 const tab = ref('table')
