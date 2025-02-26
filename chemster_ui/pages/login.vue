@@ -22,6 +22,7 @@ import { useAuthStore } from '~/store/auth'
 import { UI_INDEX_ENDPOINT } from '~/utils/constants'
 
 // Check authentication and redirect to index if already done
+// Note useAuthStore must be called directly here or it will be undefined due to import order
 definePageMeta({ middleware: [() => { if (useAuthStore().authenticated) { return navigateTo(UI_INDEX_ENDPOINT) } }] })
 
 // Load user authentication
@@ -54,20 +55,20 @@ const registerFailed = ref(false)
 // On button click, log user in
 async function handleLogin() {
   await authStore.login(credentials)
-    .then(async () => {
-      loginFailed.value = false
-      await navigateTo(UI_INDEX_ENDPOINT)
-    })
-    .catch(() => { loginFailed.value = true })
+  .then(async () => {
+    loginFailed.value = false
+    await navigateTo(UI_INDEX_ENDPOINT)
+  })
+  .catch(() => { loginFailed.value = true })
 }
 
 // On button click, register and log in new user
 async function handleRegister() {
   await authStore.register(credentials)
-    .then(async () => {
-      registerFailed.value = false
-      await navigateTo(UI_INDEX_ENDPOINT)
-    })
-    .catch(() => { registerFailed.value = true })
+  .then(async () => {
+    registerFailed.value = false
+    await navigateTo(UI_INDEX_ENDPOINT)
+  })
+  .catch(() => { registerFailed.value = true })
 }
 </script>

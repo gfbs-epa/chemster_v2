@@ -1,5 +1,5 @@
 <template>
-  <v-data-table :items="chemicalsStore.currentChemicals" :headers>
+  <v-data-table :items="chemicalStore.currentChemicals" :headers>
     <template v-slot:item.structure="{ value }">
       <v-img height="100" :src="value" />
     </template>
@@ -7,11 +7,11 @@
 </template>
 
 <script setup lang="ts">
-import { useChemicalsStore } from '~/store/chemicals'
+import { useChemicalStore } from '~/store/chemicals'
 import type { CTXChemical } from '~/utils/types'
 
 const config = useRuntimeConfig()
-const chemicalsStore = useChemicalsStore()
+const chemicalStore = useChemicalStore()
 
 const headers = [
   { title: 'DTXSID', key: 'dtxsid' },

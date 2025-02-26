@@ -18,16 +18,17 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '~/store/auth'
-import { useCollectionsStore } from '~/store/collections'
+import { useWorkspaceStore } from '~/store/workspaces'
 import { UI_LOGIN_ENDPOINT } from '~/utils/constants'
 
-const collectionsStore = useCollectionsStore()
+const workspaceStore = useWorkspaceStore()
 
 // Check authentication and redirect to login if not
+// Note useAuthStore must be called directly here or it will be udnefined due to import order
 definePageMeta({ middleware: [() => { if (!useAuthStore().authenticated) { return navigateTo(UI_LOGIN_ENDPOINT) } }] })
 
 // On mount, fetch all user workspaces from database
-onMounted(async () => { await collectionsStore.fetchWorkspaces() })
+onMounted(async () => { await workspaceStore.fetchWorkspaces() })
 
 // Track active tab
 const tab = ref('table')

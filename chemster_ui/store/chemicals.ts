@@ -5,7 +5,7 @@ import type { APIChemical, CTXChemical } from '~/utils/types'
 const API_CHEMICALS_ENDPOINT = `${REST_API_ENDPOINT}/chemicals`
 const CTX_CHEMICALS_ENDPOINT = 'ctx/detail/search/by-dtxsid/?projection=ntatoolkit'
 
-export const useChemicalsStore = defineStore('chemicals',  () => {
+export const useChemicalStore = defineStore('chemicals',  () => {
   // Chemicals in browser based on collections selected by user
   const currentChemicals = ref(Array<CTXChemical>())
 

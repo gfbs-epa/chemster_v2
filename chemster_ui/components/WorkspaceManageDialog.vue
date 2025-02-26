@@ -2,9 +2,9 @@
   <v-dialog activator="parent" v-model="open" transition="dialog-bottom-transition" max-width="800">
     <v-card>
       <v-tabs fixed-tabs center-active v-model="tab" bg-color="primary">
-        <v-tab value="select" :disabled="!collectionsStore.workspacesAvailable">Select Workspace</v-tab>
+        <v-tab value="select" :disabled="!workspaceStore.workspacesAvailable">Select Workspace</v-tab>
         <v-tab value="create">Create Workspace</v-tab>
-        <v-tab value="delete" :disabled="!collectionsStore.workspacesAvailable">Delete Workspace</v-tab>
+        <v-tab value="delete" :disabled="!workspaceStore.workspacesAvailable">Delete Workspace</v-tab>
       </v-tabs>
       <v-card-text>
         <v-tabs-window v-model="tab">
@@ -13,14 +13,14 @@
               <v-select
                 label="Choose a Workspace"
                 v-model="selectWorkspaceId"
-                :items="collectionsStore.workspaces"
+                :items="workspaceStore.workspaces"
                 item-title="name"
                 item-value="id"
                 single-line
               />
               <v-btn color="primary" 
                 type="submit" 
-                :disabled="!selectWorkspaceId || selectWorkspaceId == collectionsStore.currentWorkspaceId" 
+                :disabled="!selectWorkspaceId || selectWorkspaceId == workspaceStore.currentWorkspaceId" 
                 text="Select" 
               />
             </v-form>
@@ -37,7 +37,7 @@
               <v-select
                 label="Choose a Workspace"
                 v-model="deleteWorkspaceId"
-                :items="collectionsStore.workspaces"
+                :items="workspaceStore.workspaces"
                 item-title="name"
                 item-value="id"
                 single-line
@@ -52,16 +52,21 @@
 </template>
 
 <script setup lang="ts">
-import { useChemicalsStore } from '~/store/chemicals'
-import { useCollectionsStore } from '~/store/collections'
+import { useChemicalStore } from '~/store/chemicals'
+import { useWorkspaceStore } from '~/store/workspaces'
 
 // Load stored collection and chemical data for session
-const collectionsStore = useCollectionsStore()
-const chemicalsStore = useChemicalsStore()
+const workspaceStore = useWorkspaceStore()
+const chemicalStore = useChemicalStore()
 
 // Track open/closed state of dialog and tabs
 const open = ref(false)
-const tab = ref(collectionsStore.workspacesAvailable ? 'select' : 'create')
+const tab = ref(workspaceStore.workspacesAvailable ? 'select' : 'create')
+
+// Helper to set tab back to default
+function setDefaultTab() {
+  tab.value = workspaceStore.workspacesAvailable ? 'select' : 'create'
+}
 
 // Track inputs and validation for workspace creation
 const validWorkspaceName = ref(false)
@@ -78,48 +83,54 @@ const creationFailed = ref(false)
 // Handle submission of created workspace to back-end
 async function handleCreateWorkspace() {
   // Submit the new workspace
-  await collectionsStore.createWorkspace(createWorkspaceName.value)
-    .then(async () => {
-      // Reset available chemicals
-      chemicalsStore.reset()
-      // Update select field contents
-      selectWorkspaceId.value = collectionsStore.currentWorkspaceId
-      // Close dialog without failure alert
-      creationFailed.value = false
-      open.value = false
-    })
-    .catch(() => 
-      // Trigger failure alert and leave dialog open
-      creationFailed.value = true
-    )
-    .finally(() => {
-      // Reset workspace creation field
-      createWorkspaceName.value = ''
-    })
+  await workspaceStore.createWorkspace(createWorkspaceName.value)
+  .then(async () => {
+    // Reset available chemicals
+    chemicalStore.reset()
+    // Update select field contents
+    selectWorkspaceId.value = workspaceStore.currentWorkspaceId
+    // Close dialog without failure alert
+    creationFailed.value = false
+    open.value = false
+  })
+  .catch(() => 
+    // Trigger failure alert and leave dialog open
+    creationFailed.value = true
+  )
+  .finally(() => {
+    // Reset workspace creation field
+    createWorkspaceName.value = ''
+    // Set default tab
+    setDefaultTab()
+  })
 }
 
 // Handle workspace selection
 const selectWorkspaceId = ref()
 async function handleSelectWorkspace() {
   // Update stored collection data
-  collectionsStore.currentWorkspaceId = selectWorkspaceId.value
+  workspaceStore.currentWorkspaceId = selectWorkspaceId.value
   // Close dialog
   open.value = false
+  // Set default tab
+  setDefaultTab()
   // Update the available lists and chemicals in the selected workspace
-  await Promise.all([collectionsStore.fetchWorkspaceLists(), chemicalsStore.fetchChemicals([collectionsStore.currentWorkspaceId], true)])
+  await Promise.all([chemicalStore.fetchChemicals([workspaceStore.currentWorkspaceId], true)])
 }
 
 // Handle submission of workspace deletion to back-end
 const deleteWorkspaceId = ref()
 async function handleDeleteWorkspace() {
   // Delete the workspace
-  await collectionsStore.deleteWorkspace(deleteWorkspaceId.value)
-    .finally(() => {
-      // Reset contents of select and delete fields
-      selectWorkspaceId.value = collectionsStore.currentWorkspaceId
-      deleteWorkspaceId.value = null
-      // Close the dialog
-      open.value = false
-    })
+  await workspaceStore.deleteWorkspace(deleteWorkspaceId.value)
+  .finally(() => {
+    // Reset contents of select and delete fields
+    selectWorkspaceId.value = workspaceStore.currentWorkspaceId
+    deleteWorkspaceId.value = null
+    // Close the dialog
+    open.value = false
+    // Set default tab
+    setDefaultTab()
+  })
 }
 </script>
