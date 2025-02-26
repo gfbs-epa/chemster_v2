@@ -1,5 +1,6 @@
 """Define Marshmallow schemas for SQLAlchemy entities associated with this database."""
 
+from marshmallow_sqlalchemy import auto_field
 from config import ma
 from models import (
     User,
@@ -16,6 +17,7 @@ from models import (
 class UserSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = User
+        
 
 
 class ChemicalSchema(ma.SQLAlchemyAutoSchema):
@@ -27,6 +29,11 @@ class CollectionSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Collection
         include_fk = True
+        load_instance = True
+
+    # This field is required by the database, but set internally,
+    # so needs to be ignored when deserializing the user input
+    owner_id = auto_field(required=False)
 
 
 class PropertySchema(ma.SQLAlchemyAutoSchema):

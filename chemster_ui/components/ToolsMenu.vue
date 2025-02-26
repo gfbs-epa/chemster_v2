@@ -1,32 +1,19 @@
 <template>
-  <v-fab app :color="fabOpen ? '' : 'primary'" location="right bottom" size="large" icon>
-    <v-icon>{{ fabOpen ? 'mdi-close' : 'mdi-tools' }}</v-icon>
-    <v-speed-dial v-model="fabOpen" location="top center" transition="slide-y-reverse-transition" activator="parent">
-      <v-btn v-if="true" color="primary" size="large" icon>
+  <v-fab app color='light-green-darken-4' size="x-large" icon>
+    <v-icon>{{ fabOpen ? 'mdi-close' : 'mdi-flask-outline' }}</v-icon>
+    <v-speed-dial v-model="fabOpen" location="left center" transition="slide-x-reverse-transition" activator="parent">
+      <v-btn v-if="true" color='light-green-darken-3' size="x-large" icon>
+        <v-icon>mdi-book-multiple-outline</v-icon>
+        <v-tooltip activator="parent" location="top" text="Manage Workspaces" />
+        <WorkspaceManageDialog />
+      </v-btn>
+      <v-btn v-if="!!collectionsStore.currentWorkspaceId" color='light-green-darken-2' size="x-large" icon>
         <v-icon>mdi-plus</v-icon>
-        <v-tooltip activator="parent" location="start" text="Create Workspace" />
-        <v-dialog activator="parent">
-          <v-card>
-            <v-card-title>Create Workspace</v-card-title>
-            <v-card-text>
-              <v-form>
-                <v-text-field label="New Workspace Name" />
-              </v-form>
-            </v-card-text>
-          </v-card>
-        </v-dialog>
+        <v-tooltip activator="parent" location="top" text="Add Lists" />
       </v-btn>
-      <v-btn v-if="collectionsStore.workspaces.length > 0" color="primary" size="large" icon>
-        <v-icon>mdi-cursor-default-click</v-icon>
-        <v-tooltip activator="parent" location="start" text="Select Workspace" />
-      </v-btn>
-      <v-btn v-if="!!collectionsStore.currentWorkspaceId" color="primary" size="large" icon>
-        <v-icon>mdi-note-plus</v-icon>
-        <v-tooltip activator="parent" location="start" text="Add Lists" />
-      </v-btn>
-      <v-btn v-if="collectionsStore.workspaceLists.length > 0" color="primary" size="large" icon>
-        <v-icon>mdi-note-search</v-icon>
-        <v-tooltip activator="parent" location="start" text="Select Lists" />
+      <v-btn v-if="collectionsStore.workspaceLists.length > 0" color='light-green-darken-1' size="x-large" icon>
+        <v-icon>mdi-filter-variant</v-icon>
+        <v-tooltip activator="parent" location="top" text="Select Lists" />
       </v-btn>
     </v-speed-dial>
   </v-fab>

@@ -53,9 +53,9 @@ class CollectionsResource(Resource):
     def post(self):
         """Create a new collection from POST request on collections endpoint."""
 
-        # Load new object from POST body
+        # Load new collection from POST body
         collection = collection_schema.load(request.get_json())
-        # Assign ownership to current user based on JWT
+        # Assign ownership to current user via JWT
         collection.owner_id = int(get_jwt_identity())
 
         try:
@@ -64,9 +64,9 @@ class CollectionsResource(Resource):
             db.session.commit()
         except IntegrityError:
             # Check for duplicate insertion
-            abort(409, message=f'Error creating collection {collection.name}: collection already exists')
+            abort(409, f'Error creating collection {collection.name}: collection already exists')
 
-        return collection, 201
+        return collection_schema.dump(collection), 201
 
 
     @jwt_required()

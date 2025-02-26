@@ -1,8 +1,7 @@
 <template>
-  <CollectionsDrawer />
   <v-main>
-    <v-container fluid fill-height>
-      <v-tabs v-model="tab" bg-color="primary">
+    <v-container fluid fill-height class="pa-0">
+      <v-tabs fixed-tabs center-active v-model="tab" bg-color="primary">
         <v-tab value="table">Table</v-tab>
       </v-tabs>
       <v-tabs-window v-model="tab">
@@ -19,10 +18,16 @@
 
 <script setup lang="ts">
 import { useAuthStore } from '~/store/auth'
+import { useCollectionsStore } from '~/store/collections'
 import { UI_LOGIN_ENDPOINT } from '~/utils/constants'
 
+const collectionsStore = useCollectionsStore()
+
 // Check authentication and redirect to login if not
-definePageMeta({ middleware: [() => { if (useAuthStore().accessHeader === '') { return navigateTo(UI_LOGIN_ENDPOINT) } }] })
+definePageMeta({ middleware: [() => { if (!useAuthStore().authenticated) { return navigateTo(UI_LOGIN_ENDPOINT) } }] })
+
+// On mount, fetch all user workspaces from database
+onMounted(async () => { await collectionsStore.fetchWorkspaces() })
 
 // Track active tab
 const tab = ref('table')

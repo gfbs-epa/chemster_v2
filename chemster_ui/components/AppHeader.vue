@@ -1,7 +1,7 @@
 <template>
-  <v-app-bar color="primary">
+  <v-app-bar color="primary" flat>
     <v-app-bar-title>ChemSTER: Chemical Space To Explorable Representations</v-app-bar-title>
-    <template v-slot:append v-if="authStore.accessHeader">
+    <template v-slot:append v-if="authStore.authenticated">
       <v-btn icon @click="authStore.logout" class="ma-1">
         <v-icon>mdi-logout</v-icon>
         <v-tooltip activator="parent" location="start" text="Logout" />

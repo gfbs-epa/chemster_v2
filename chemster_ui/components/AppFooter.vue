@@ -1,6 +1,6 @@
 <template>
   <v-footer app color="primary">
-    <div v-if="authStore.accessHeader">
+    <div v-if="authStore.authenticated">
       <strong>User:</strong> {{ authStore.currentUsername }}
       <span v-if="collectionsStore.currentWorkspaceName != ''">/ <strong>Workspace:</strong> {{ collectionsStore.currentWorkspaceName }}</span>
     </div>

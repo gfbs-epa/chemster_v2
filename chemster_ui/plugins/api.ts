@@ -6,7 +6,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   const api = $fetch.create({
     onRequest({ options }) {
       // If authenticated, set auth header and prepare to retry once if token expired
-      if (authStore.accessHeader) {
+      if (authStore.authenticated) {
         options.headers.set('Authorization', authStore.accessHeader)
         options.retry = 1
         options.retryStatusCodes = [401]
@@ -17,7 +17,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     async onResponseError({ response }) {
       // If authenticated but receive 401 anyways, refresh access token
       // Request will then be retried according to options above
-      if (response.status === 401 && authStore.accessHeader) {
+      if (response.status === 401 && authStore.authenticated) {
         authStore.refresh()
       }
     }
