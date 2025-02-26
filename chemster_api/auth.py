@@ -1,7 +1,5 @@
 """Initialize authentication for Flask app using JWT."""
 
-import logging
-
 from datetime import timedelta, timezone, datetime
 from flask import request, abort, jsonify
 from flask_bcrypt import generate_password_hash, check_password_hash
@@ -18,8 +16,6 @@ from sqlalchemy.exc import IntegrityError
 from config import db
 from constants import JWT_SECRET_KEY, API_ENDPOINT
 from models import User, RevokedJWT
-
-logger = logging.getLogger(__name__)
 
 
 def init_auth(app):
@@ -41,61 +37,59 @@ def init_auth(app):
         """Check for revoked token on all calls to protected endpoints."""
 
         # If matching record found in revoked_jwts table, identify token revoked and deny access
-        revoked = db.session.execute(db.select(RevokedJWT.id).filter_by(jti=jwt_payload['jti'])).scalar_one_or_none() is not None
-        return revoked
+        return db.session.execute(db.select(RevokedJWT.id).filter_by(jti=jwt_payload['jti'])).scalar_one_or_none() is not None
 
 
     @app.route(f'{API_ENDPOINT}/register', methods=['POST'])
     def register():
         """Register a new user from credentials in POST body and provide JWTs if successful."""
 
-        # Get credentials from POST body
-        login = request.get_json()
-        username = login['username']
+        # Load credentials from POST body
+        username, password = _load_credentials(request)
 
         try:
             # Insert the new user with hashed password
-            db.session.add(User(username=username, password_hash=generate_password_hash(login['password']).decode('utf-8')))
+            db.session.add(User(username=username, password_hash=generate_password_hash(password).decode('utf-8')))
             db.session.commit()
-        except IntegrityError as ie:
+        except IntegrityError:
             # Check for duplicate insertion
-            logger.warning('SQLAlchemy Integrity Error: %s', ie)
             abort(409, message=f'Error creating user {username}: user already exists')
 
         # Check user created successfully
-        user = db.session.execute(db.select(User).filter_by(
-            username=username)).scalar_one_or_none()
+        user = db.session.execute(db.select(User).filter_by(username=username)).scalar_one_or_none()
         if not user:
-            logger.error('Unknown database error - failed to insert user: %s', username)
             abort(500, f'Error creating user {username}: unknown error')
 
         # Create the access and refresh tokens and return them to the client
-        identity = str(user.id)
-        access_token = create_access_token(identity=identity)
-        refresh_token = create_refresh_token(identity=identity)
-        return jsonify(access_token=access_token, refresh_token=refresh_token), 201
+        return _make_token_response(user), 201
 
 
     @app.route(f'{API_ENDPOINT}/login', methods=['POST'])
     def login():
         """Login an existing user from credentials in POST body and provide JWTs if successful."""
 
-        # Get credentials from POST body
-        login = request.get_json()
-        username = login['username']
+        # Load credentials from POST body
+        username, password = _load_credentials(request)
 
         # Check if user exists and user password matches saved password hash
         existing_user = db.session.execute(db.select(User).filter_by(username=username)).scalar_one_or_none()
-        if existing_user and check_password_hash(existing_user.password_hash, login['password']):
-            logger.info('Login successful: %s', username)
+        if existing_user and check_password_hash(existing_user.password_hash, password):
             # Create the access and refresh tokens and return them to the client
-            identity = str(existing_user.id)
-            access_token = create_access_token(identity=identity)
-            refresh_token = create_refresh_token(identity=identity)
-            return jsonify(access_token=access_token, refresh_token=refresh_token)
+            return _make_token_response(existing_user)
 
-        logger.warning('Login failed: %s', username)
         abort(401, 'Login failed')
+
+
+    def _load_credentials(request):
+        credentials = request.get_json()
+        return credentials['username'], credentials['password']
+
+
+    def _make_token_response(user):
+        identity = str(user.id)
+        access_token = create_access_token(identity=identity)
+        refresh_token = create_refresh_token(identity=identity)
+        return jsonify(access_token=access_token, refresh_token=refresh_token)
 
 
     @app.route(f'{API_ENDPOINT}/refresh', methods=['GET', 'POST'])

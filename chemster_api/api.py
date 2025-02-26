@@ -1,7 +1,5 @@
 """Configure a Flask app and run locally if used as main."""
 
-import logging
-
 from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
@@ -16,14 +14,6 @@ from util import abs_path # pylint: disable=import-error
 
 def create_app(sqlalchemy_database_uri):
     """Configure a Flask app and attach SQLAlchemy, Marshmallow, CORS, and JWT instances."""
-
-    # Set up logging to file
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-        datefmt='%m-%d %H:%M',
-        handlers=[logging.FileHandler(abs_path('chemster_api.log')), logging.StreamHandler()],
-    )
 
     # Start Flask app
     app = Flask(__name__)
@@ -43,7 +33,7 @@ def create_app(sqlalchemy_database_uri):
 
     # Start REST API and register endpoints
     rest_api = Api(app)
-    rest_api.add_resource(CollectionsResource, COLLECTIONS_ENDPOINT)
+    rest_api.add_resource(CollectionsResource, COLLECTIONS_ENDPOINT, f'{COLLECTIONS_ENDPOINT}/<int:id>')
     rest_api.add_resource(ChemicalsResource, CHEMICALS_ENDPOINT)
 
     return app
