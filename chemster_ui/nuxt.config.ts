@@ -14,7 +14,8 @@ export default defineNuxtConfig({
       })
     },
     '@pinia/nuxt',
-    'pinia-plugin-persistedstate/nuxt'
+    'pinia-plugin-persistedstate/nuxt',
+    'nuxt-plotly'
   ],
   vite: {
     vue: {
@@ -22,6 +23,9 @@ export default defineNuxtConfig({
         transformAssetUrls,
       },
     },
+    optimizeDeps: {
+      include: ["plotly.js-dist-min"],
+    }
   },
   runtimeConfig: {
     // Overridden by .env

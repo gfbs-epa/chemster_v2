@@ -49,27 +49,46 @@ class ChemicalsResource(Resource):
     def post(self):
         """Create a new chemical from POST request on chemicals endpoint."""
 
-        if batch := request.args.get('batch', default=False, type=query_param_bool):
-            chemicals_schema.load(request.get_json())
+        collection_id = request.args.get('collection_id')
+        if request.args.get('batch', default=False, type=query_param_bool):
+            response = self._insert_batch(chemicals_schema.load(request.get_json()), collection_id)
         else:
-            response = self._insert_one(chemical_schema.load(request.get_json()))
+            response = self._insert_one(chemical_schema.load(request.get_json()), collection_id)
 
         return response, 201
 
 
-    def _insert_one(self, chemical):
+    def _insert_one(self, chemical, collection_id):
         try:
-            # Insert the new collection
+            # Insert the new chemical
             db.session.add(chemical)
             db.session.commit()
+
+            if collection_id:
+                collection_chemical = CollectionChemical(chemical_dtxsid=chemical['dtxsid'], collection_id=collection_id)
+                db.session.add(collection_chemical)
+                db.session.commit()
         except IntegrityError:
             # Check for duplicate insertion
-            abort(409, message=f'Error creating chemical {chemical.dtxsid}: chemical already exists')
+            abort(409, message=f'Error creating chemical {chemical['dtxsid']}: chemical already exists')
 
         return chemical_schema.dump(chemical)
     
 
-    def _insert_batch(self, chemicals):
-        db.session.execute(db.insert(Chemical).prefix_with('OR IGNORE').values(chemicals))
+    def _insert_batch(self, chemicals, collection_id):
+        for c in chemicals:
+            existing_chemical = db.session.get(Chemical, c['dtxsid'])
 
+            if not existing_chemical:
+                db.session.add(Chemical(dtxsid=c['dtxsid']))
+
+            if collection_id:
+                existing_collection_chemical = db.session.execute(
+                    db.select(CollectionChemical).filter_by(chemical_dtxsid=c['dtxsid'], collection_id=collection_id)
+                ).scalar_one_or_none()
+
+                if not existing_collection_chemical:
+                    db.session.add(CollectionChemical(chemical_dtxsid=c['dtxsid'], collection_id=collection_id))
+
+        db.session.commit()
         return chemicals_schema.dump(chemicals)

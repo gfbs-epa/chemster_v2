@@ -15,7 +15,7 @@ export type Collection = {
   owner_id: number 
 }
 
-export type APIChemical = {
+export type Chemical = {
   dtxsid: string
 }
 
@@ -37,4 +37,23 @@ export type CTXChemical = {
   nhanes: string,
   sourcesCount: number,
   totalAssays: number,
+}
+
+export type CTXList = {
+  id: number,
+  listName: string,
+  shortDescription: string,
+  longDescription: string,
+  type: string,
+  visibility: string,
+  createdAt: string,
+  chemicalCount: number,
+  updatedAt: string,
+  label: string
+}
+
+export type DashboardListItem = {
+  title: string,
+  value: string,
+  props: { subtitle: string }
 }

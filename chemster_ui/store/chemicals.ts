@@ -1,36 +1,52 @@
 import { defineStore } from 'pinia'
 import { REST_API_ENDPOINT } from '~/utils/constants'
-import type { APIChemical, CTXChemical } from '~/utils/types'
+import type { Chemical } from '~/utils/types'
+import { useWorkspaceStore } from './workspaces'
+import { useListStore } from './lists'
 
 const API_CHEMICALS_ENDPOINT = `${REST_API_ENDPOINT}/chemicals`
-const CTX_CHEMICALS_ENDPOINT = 'ctx/detail/search/by-dtxsid/?projection=ntatoolkit'
 
 export const useChemicalStore = defineStore('chemicals',  () => {
   // Chemicals in browser based on collections selected by user
-  const currentChemicals = ref(Array<CTXChemical>())
+  const currentDtxsids = ref([]) as Ref<string[]>
 
-  // Integrate back-end and CTX chemical data fetching
-  async function fetchChemicals(collectionIds: number[], recursive: boolean) {
-    await fetchChemicalsFromAPI(collectionIds, recursive)
-      .then(async (apiChemicals) => {
-        currentChemicals.value = await fetchChemicalsFromCTX(apiChemicals.map((c: APIChemical) => c.dtxsid))
-      })
+  // Fetch DTXSIDs from back-end API based on selected collections
+  async function fetchDtxsids() {
+    const workspaceStore = useWorkspaceStore()
+    let recursive = true
+    let collectionIds = [workspaceStore.currentWorkspaceId]
+
+    const listStore = useListStore()
+    if (listStore.currentListIds.length > 0) {
+      recursive = false
+      collectionIds = listStore.currentListIds
+    }
+
+    currentDtxsids.value = await useNuxtApp().$api<Array<Chemical>>(
+      API_CHEMICALS_ENDPOINT, 
+      { query: { recursive: recursive, collection_id: collectionIds } }
+    )
+    .then((chemicals) => { return chemicals.map(chemicalObjectToDtxsid) })
   }
 
-  // Back-end chemical data fetching
-  async function fetchChemicalsFromAPI(collectionIds: number[], recursive: boolean) {
-    return await useNuxtApp().$api<Array<APIChemical>>(API_CHEMICALS_ENDPOINT, { query: { recursive: recursive, collection_id: collectionIds } })
-  }
-
-  // CTX chemical detail data fetching
-  async function fetchChemicalsFromCTX(dtxsids: string[]) {
-    return await useNuxtApp().$ctx<Array<CTXChemical>>(CTX_CHEMICALS_ENDPOINT, { method: 'POST', body: dtxsids })
+  // Upload a set of chemicals to the back-end and associate them with a collection
+  async function createChemicals(dtxsids: string[], collection_id: number) {
+    return await useNuxtApp().$api<Chemical[]>(API_CHEMICALS_ENDPOINT, 
+      { method: 'POST', 
+        query: { batch: true, collection_id: collection_id },
+        body: dtxsids.map((d) => { return { dtxsid: d } })
+      }
+    )
   }
 
   // Helper to reset whole store when user logs out
   function reset() {
-    currentChemicals.value = Array<CTXChemical>()
+    currentDtxsids.value = []
   }
 
-  return { currentChemicals, fetchChemicals, reset }
+  function chemicalObjectToDtxsid(chemical: Chemical) {
+    return chemical.dtxsid
+  }
+
+  return { currentDtxsids, fetchDtxsids, createChemicals, reset }
 })

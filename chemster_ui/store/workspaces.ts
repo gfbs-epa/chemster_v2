@@ -5,7 +5,7 @@ import type { Collection } from '~/utils/types'
 export const useWorkspaceStore = defineStore('workspaces',  () => {
   // All top-level workspaces available in database
   const workspaces = ref(Array<Collection>())
-  // Workspace selected by user in collections panel
+  // Workspace selected by user in interface
   const currentWorkspaceId = ref()
 
   // Getter to check if any workspaces exist for user
@@ -36,14 +36,15 @@ export const useWorkspaceStore = defineStore('workspaces',  () => {
       const newWorkspace = response._data as Collection
       workspaces.value.push(newWorkspace)
       currentWorkspaceId.value = newWorkspace.id
-      return true
     })
-    .catch(() => { return false })
   }
 
   async function deleteWorkspace(id: number) {
     await useNuxtApp().$api(`${REST_API_COLLECTIONS_ENDPOINT}/${id}`, { method: 'DELETE' })
     .then(async () => {
+      // After successful deletion, remove the workspace from the store
+      workspaces.value = workspaces.value.filter(item => item.id != id)
+      // If we just deleted the workspace we were in, set it to null
       if (id === currentWorkspaceId.value) {
         currentWorkspaceId.value = null
       }

@@ -3,6 +3,7 @@ import { useChemicalStore } from './chemicals'
 import { useWorkspaceStore } from './workspaces'
 import type { Credentials, Tokens } from '~/utils/types'
 import { API_ENDPOINT, UI_LOGIN_ENDPOINT } from '~/utils/constants'
+import { useListStore } from './lists'
 
 export const useAuthStore = defineStore('auth',  () => {
   const accessHeader = ref('')
@@ -62,6 +63,7 @@ export const useAuthStore = defineStore('auth',  () => {
 
     useWorkspaceStore().reset()
     useChemicalStore().reset()
+    useListStore().reset()
 
     await navigateTo(UI_LOGIN_ENDPOINT)
     return false

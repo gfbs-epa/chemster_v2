@@ -22,11 +22,13 @@ class Collection(db.Model):
     __tablename__ = 'collections'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255, collation='NOCASE'),
-                     nullable=False, unique=True, index=True)
+                     nullable=False, index=True)
     super_id = db.Column(db.Integer, db.ForeignKey(
         'collections.id'), index=True)
     owner_id = db.Column(db.Integer, db.ForeignKey(
         'users.id'), nullable=False, index=True)
+    # Create composite unique constraint
+    __table_args__ = (db.UniqueConstraint(name, super_id, owner_id),)
     # Foreign key relationships
     super = db.relationship('Collection', remote_side=id)
     owner = db.relationship('User')
