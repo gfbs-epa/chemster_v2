@@ -19,6 +19,27 @@ export type Chemical = {
   dtxsid: string
 }
 
+export type PropertyValue = {
+  dtxsid: string,
+  value: number,
+  name: string,
+  source: string,
+  unit: string
+}
+
+export type CTXProperty = {
+  name: string,
+  value: number,
+  id: number,
+  propertyId: string,
+  propType: string,
+  source: string,
+  description: string,
+  dtxsid: string,
+  dtxcid: string,
+  unit: string
+}
+
 export type CTXChemical = {
   dtxsid: string,
   dtxcid: string,

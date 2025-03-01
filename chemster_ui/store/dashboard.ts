@@ -14,23 +14,19 @@ export const useDashboardStore = defineStore('dashboard',  () => {
   async function fetchDashboardLists() {
     const ctxLists = await useNuxtApp().$ctx<Array<CTXList>>(CTX_LISTS_ENDPOINT)
     // Pick out properties of interest to avoid storing excessive data
-    ctxLists.forEach((ctxList) => {
-      let item = ctxListToListItem(ctxList)
+    ctxLists.forEach((list) => {
+      let item = { 
+        title: list.listName,
+        value: list.listName,
+        props: { subtitle: `${list.label} (${list.chemicalCount})` }
+      } as DashboardListItem
+
       if (item.title.startsWith(MEDIA_LISTS_PREFIX)) {
         mediaLists.value.push(item)
       } else {
         otherLists.value.push(item)
       }
     })
-  }
-
-  // Helper to map a CTX API list response to a useful list detail item
-  function ctxListToListItem(ctxList: CTXList) {
-    return { 
-      title: ctxList.listName,
-      value: ctxList.listName,
-      props: { subtitle: `${ctxList.label} (${ctxList.chemicalCount})` }
-    } as DashboardListItem
   }
 
   return { mediaLists, otherLists, fetchDashboardLists }

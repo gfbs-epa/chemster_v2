@@ -63,7 +63,7 @@ class ChemicalsResource(Resource):
             # Insert the new chemical
             db.session.add(chemical)
             db.session.commit()
-
+            # Add it to the collection using the ID, if provided
             if collection_id:
                 collection_chemical = CollectionChemical(chemical_dtxsid=chemical['dtxsid'], collection_id=collection_id)
                 db.session.add(collection_chemical)
@@ -76,17 +76,19 @@ class ChemicalsResource(Resource):
     
 
     def _insert_batch(self, chemicals, collection_id):
+        """Do batch inserts, ignoring conflicts."""
+
         for c in chemicals:
+            # Check for an existing matching chemical
             existing_chemical = db.session.get(Chemical, c['dtxsid'])
-
             if not existing_chemical:
+                # Otherwise add it and map it to the collection if provided
                 db.session.add(Chemical(dtxsid=c['dtxsid']))
-
-            if collection_id:
-                existing_collection_chemical = db.session.execute(
-                    db.select(CollectionChemical).filter_by(chemical_dtxsid=c['dtxsid'], collection_id=collection_id)
-                ).scalar_one_or_none()
-
+                if collection_id:
+                    db.session.add(CollectionChemical(chemical_dtxsid=c['dtxsid'], collection_id=collection_id))
+            elif collection_id:
+                # If the chemical already exists, also check if it's already mapped, and add the mapping if not
+                existing_collection_chemical = db.session.execute(db.select(CollectionChemical).filter_by(chemical_dtxsid=c['dtxsid'], collection_id=collection_id)).scalar_one_or_none()
                 if not existing_collection_chemical:
                     db.session.add(CollectionChemical(chemical_dtxsid=c['dtxsid'], collection_id=collection_id))
 

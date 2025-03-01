@@ -5,18 +5,18 @@
         <v-col>
           <v-tabs grow v-model="tab" bg-color="primary">
             <v-tab value="table">Table</v-tab>
-            <v-tab value="histogram" disabled>Property Distributions</v-tab>
+            <v-tab value="histogram">Property Distributions</v-tab>
             <v-tab value="scatter" disabled>Property Relationships</v-tab>
             <v-tab value="structure" disabled>Structure Visualization</v-tab>
             <v-tab value="side-by-side" disabled>Side-by-Side</v-tab>
           </v-tabs>
           <v-tabs-window v-model="tab">
             <v-tabs-window-item key="table" value="table">
-              <v-sheet>
-                <ChemicalsTable />
-              </v-sheet>
+              <ChemicalsTable />
             </v-tabs-window-item>
-            <v-tabs-window-item key="table" value="table" />
+            <v-tabs-window-item key="histogram" value="histogram">
+              <HistogramBlocks />
+            </v-tabs-window-item>
           </v-tabs-window>
         </v-col>
       </v-row>

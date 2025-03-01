@@ -34,7 +34,8 @@ export default defineNuxtConfig({
       masterCollectionId: '',
       comptoxImageUrl: '',
       ctxApiUrl: '',
-      ctxApiKey: ''
+      ctxApiKey: '',
+      ctxApiRequestLimit: ''
     }
   }
 })

@@ -27,6 +27,7 @@
                 multiple
                 chips
                 clearable
+                clear-on-select
               />
               <v-btn :color="COLOR" 
                 type="submit"
@@ -50,7 +51,14 @@
                 clearable
                 clear-on-select
                 class="my-2"
-              />
+              >
+                <template v-slot:item="{ props, item }">
+                  <v-list-item
+                    v-bind="props"
+                    :disabled="listStore.currentListNames.includes(item.raw.title)"
+                  />
+                </template>
+              </v-autocomplete>
               <div>
                 Select other <a href="https://comptox.epa.gov/dashboard/chemical-lists" target="_blank" rel="noopener noreferrer">CompTox Chemicals Dashboard</a> lists to further describe your chemical space:
               </div>
@@ -65,7 +73,14 @@
                 chips
                 clearable
                 clear-on-select
-              />
+              >
+              <template v-slot:item="{ props, item }">
+                <v-list-item
+                  v-bind="props"
+                  :disabled="listStore.currentListNames.includes(item.raw.title)"
+                />
+                </template>
+              </v-autocomplete>
               <v-btn :color="COLOR" type="submit" :disabled="addLoading">Add</v-btn>
               <v-progress-linear v-if="addLoading" :color="COLOR" bg-color="light-green-lighten-1" indeterminate />
             </v-form>
@@ -95,33 +110,35 @@ const chemicalStore = useChemicalStore()
 // Track open/closed state of dialog and tabs
 const open = ref(false)
 const tab = ref(listStore.listsAvailable ? 'select' : 'add')
-
-// Helper to set tab back to default
-function setDefaultTab() {
-  tab.value = listStore.listsAvailable ? 'select' : 'add'
-}
-
-// Handle list selection
+// Track list selection in interface, updating reactively when workspace changes
 const selectListIds = ref([])
 watch(storeToRefs(workspaceStore).currentWorkspaceId, () => selectListIds.value = [])
+// Track list additions in interface
+const selectMediaListNames = ref([]) as Ref<string[]>
+const selectOtherListNames = ref([]) as Ref<string[]>
+const addLoading = ref(false)
+
+function close() {
+  open.value = false
+  tab.value = listStore.listsAvailable ? 'select' : 'add'
+  selectListIds.value = []
+  selectMediaListNames.value = []
+  selectOtherListNames.value = []
+}
 
 async function handleSelectLists() {
   // Update stored collection data
   listStore.currentListIds = selectListIds.value
-  // Close dialog
-  open.value = false
+  close()
   // Update displayed chemicals from the selected lists
   await chemicalStore.fetchDtxsids()
 }
 
-const selectMediaListNames = ref([]) as Ref<string[]>
-const selectOtherListNames = ref([]) as Ref<string[]>
-const addLoading = ref(false)
 async function handleAddDashboardLists() {
   addLoading.value = true
   const uploadListNames = selectMediaListNames.value.concat(selectOtherListNames.value)
   for (const listName of uploadListNames) {
-    await listStore.createList(listName, workspaceStore.currentWorkspaceId)
+    await listStore.createList(listName, workspaceStore.currentWorkspaceId.value)
     .then(async (list) => {
       return { dtxsids: await useNuxtApp().$ctx<string[]>(`ctx/list/chemicals/search/by-listname/${list.name}`), collection_id: list.id }
     })
@@ -129,7 +146,7 @@ async function handleAddDashboardLists() {
   }
 
   addLoading.value = false
-  open.value = false
+  close()
   chemicalStore.fetchDtxsids()
 }
 </script>

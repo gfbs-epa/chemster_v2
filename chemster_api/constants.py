@@ -10,6 +10,8 @@ load_dotenv()
 SQLITE_DB_PATH = os.getenv('SQLITE_DB_PATH')
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 CHEMSTER_UI_URL = os.getenv('CHEMSTER_UI_URL')
+CTX_API_URL = os.getenv('CTX_API_URL')
+CTX_API_KEY = os.getenv('CTX_API_KEY')
 
 API_ENDPOINT = '/api'
 REST_API_ENDPOINT = f'{API_ENDPOINT}/rest'

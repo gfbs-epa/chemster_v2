@@ -6,6 +6,10 @@ export default defineNuxtPlugin((nuxtApp) => {
       // Automatically assigns API key header from runtime config to all requests
       options.headers.set('x-api-key', config.public.ctxApiKey)
       options.headers.set('accept', 'application/json')
+      // Ensure retries in case of server overload
+      options.retry = 3
+      options.retryStatusCodes = [500, 502, 503, 504]
+      options.retryDelay = 500
     }
   })
   return { provide: { ctx } }

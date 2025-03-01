@@ -9,3 +9,6 @@ export const REST_API_COLLECTIONS_ENDPOINT = `${REST_API_ENDPOINT}/collections`
 // login -> index if logged in
 export const UI_LOGIN_ENDPOINT = '/login'
 export const UI_INDEX_ENDPOINT = '/'
+
+// Sources for property measurements from CTX APIs
+export const PROPERTY_SOURCES = ['TEST', 'OPERA', 'ACD/Labs', 'EPISUITE']

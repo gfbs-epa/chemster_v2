@@ -6,9 +6,7 @@ from models import (
     User,
     Chemical,
     Collection,
-    Property,
-    CollectionChemical,
-    ChemicalProperty
+    CollectionChemical
 )
 
 
@@ -36,23 +34,11 @@ class CollectionSchema(ma.SQLAlchemyAutoSchema):
     owner_id = auto_field(required=False)
 
 
-class PropertySchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Property
-        include_fk = True
-
-
 class CollectionChemicalSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = CollectionChemical
         include_fk = True
 
 
-class ChemicalPropertySchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = ChemicalProperty
-        include_fk = True
-
-
-# Revoked JWTs never need to be dumped or loaded,
+# Revoked JWTs never need to be serialized/deserialized,
 # so no schema needed for the RevokedJWT model
