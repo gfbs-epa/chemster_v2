@@ -1,8 +1,8 @@
 <template>
-  <v-card class="ma-2 bg-grey-lighten-3" flat>
+  <v-card class="bg-grey-lighten-3" flat>
     <v-card-text>
       <div ref="plt"></div>
-      <v-slider v-model="bins" min="10" max="100" step="10" color="primary" class="pt-5">
+      <v-slider v-model="bins" min="10" max="100" step="10" color="primary" class="pt-5" hide-details>
         <template v-slot:prepend>
           <v-text-field label="Bins" v-model="bins" density="compact" variant="outlined" type="number" style="width: 80px" hide-details />
           <v-tooltip activator="parent" location="bottom">Bins are optimized to fit data and may not match input exactly</v-tooltip>

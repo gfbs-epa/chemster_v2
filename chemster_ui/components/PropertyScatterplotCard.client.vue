@@ -1,11 +1,12 @@
 <template>
-  <v-card class="ma-2 bg-grey-lighten-3" flat>
+  <v-card class="bg-grey-lighten-3" flat>
     <v-card-text>
       <div ref="plt"></div>
       <v-container class="pa-0">
-        <v-row class="align-center text-center">
-          <v-col><v-switch v-model="xlog" label="Log scale x?" color="primary" hide-details :disabled="xprop.startsWith('log')" /></v-col>
-          <v-col ><v-switch v-model="ylog" label="Log scale y?" color="primary" hide-details :disabled="yprop.startsWith('log')" /></v-col>
+        <v-row class="align-center" no-gutters>
+          <v-col cols="4"><v-switch v-model="xlog" label="Log scale x?" color="primary" hide-details :disabled="xprop.startsWith('log')" /></v-col>
+          <v-col cols="4"><v-switch v-model="ylog" label="Log scale y?" color="primary" hide-details :disabled="yprop.startsWith('log')" /></v-col>
+          <v-col cols="4" class="text-right" color="primary"><v-btn variant="plain" text="close" @click.stop="$emit('close')" /></v-col>
         </v-row>
       </v-container>
     </v-card-text>

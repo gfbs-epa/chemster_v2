@@ -1,5 +1,5 @@
 <template>
-  <v-dialog activator="parent" v-model="open" transition="dialog-bottom-transition" max-width="800">
+  <v-dialog activator="parent" v-model="open" max-width="800">
     <v-card>
       <v-toolbar title="Manage Sets" :color="COLOR">
         <template v-slot:extension>
@@ -23,7 +23,7 @@
                 item-value="id"
                 persistent-hint
                 hint="Leave blank to use entire workspace"
-                class="my-2"
+                class="mt-2 mb-4"
                 single-line
                 multiple
                 chips
@@ -97,7 +97,7 @@ import { useDashboardStore } from '~/store/dashboard'
 import { useSetStore } from '~/store/sets'
 import { useWorkspaceStore } from '~/store/workspaces'
 
-const COLOR = 'light-green-darken-1'
+const COLOR = 'primary'
 
 // Load stored collection and chemical data for session
 const dashboardStore = useDashboardStore()

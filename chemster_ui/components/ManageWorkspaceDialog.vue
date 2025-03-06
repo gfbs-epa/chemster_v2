@@ -1,5 +1,5 @@
 <template>
-  <v-dialog activator="parent" v-model="open" transition="dialog-bottom-transition" max-width="800">
+  <v-dialog activator="parent" v-model="open" max-width="800">
     <v-card>
       <v-toolbar title="Manage Workspaces" :color="COLOR">
         <template v-slot:extension>
@@ -64,7 +64,7 @@ import { useSetStore } from '~/store/sets'
 import { useWorkspaceStore } from '~/store/workspaces'
 import { required, minChars, maxChars, alphaFirst, safeChars } from '~/utils/validation-rules'
 
-const COLOR = 'light-green-darken-2'
+const COLOR = 'primary'
 
 // Load stored collection and chemical data for session
 const workspaceStore = useWorkspaceStore()
@@ -104,7 +104,10 @@ async function handleCreateWorkspace() {
   // Submit the new workspace and set it as current
   await workspaceStore.createAndLoadWorkspace(input.create)
   .then(async () => setStore.fetchSets(workspaceStore.currentWorkspaceId))
-  .then(async () => chemicalStore.fetchDtxsids(workspaceStore.currentWorkspaceId, setStore.currentSetIds))
+  .then(async () => {
+    chemicalStore.fetchDtxsids(workspaceStore.currentWorkspaceId, setStore.currentSetIds)
+    open.value = false
+  })
   .catch(() => failures.create = true)
   .finally(() => input.create = '')
 }
