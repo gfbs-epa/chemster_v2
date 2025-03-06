@@ -11,25 +11,29 @@ export const useWorkspaceStore = defineStore('workspaces',  () => {
   // Getter to check if any workspaces exist for user
   const workspacesAvailable = computed(() => workspaces.value.length > 0)
 
+  // Getter to check if a workspace is currently loaded
+  const workspaceLoaded = computed(() => !!currentWorkspaceId.value)
+
   // Getter for current workspace name
-  const currentWorkspaceName = computed(() => {
-    const currentWorkspace = workspaces.value.find(item => item['id'] === currentWorkspaceId.value)
-    return !!currentWorkspace ? currentWorkspace.name : ''
-  })
+  const currentWorkspaceName = computed(() => workspaces.value.find(item => item['id'] === currentWorkspaceId.value)?.name)
+
+  // Runtime config to use in functions
+  const config = useRuntimeConfig()
 
   // Fetch available workspaces for user from back-end
   async function fetchWorkspaces() {
-    workspaces.value = await useNuxtApp().$api<Array<Collection>>(
+    return useNuxtApp().$api<Array<Collection>>(
       REST_API_COLLECTIONS_ENDPOINT, 
-      { query: { super_id: useRuntimeConfig().public.masterCollectionId } }
+      { query: { super_id: config.public.masterCollectionId } }
     )
+    .then((resp) => workspaces.value = resp)
   }
 
-  // Create a new workspace
-  async function createWorkspace(name: string) {
-    await useNuxtApp().$api.raw<Collection>(
+  // Create a new workspace and set it as active
+  async function createAndLoadWorkspace(name: string) {
+    return useNuxtApp().$api.raw<Collection>(
       REST_API_COLLECTIONS_ENDPOINT, 
-      { method: 'POST', body: { name: name, super_id: useRuntimeConfig().public.masterCollectionId } }
+      { method: 'POST', body: { name: name, super_id: config.public.masterCollectionId } }
     )
     .then(async (response) => {
       // After successful creation, go to new workspace
@@ -39,11 +43,12 @@ export const useWorkspaceStore = defineStore('workspaces',  () => {
     })
   }
 
-  async function deleteWorkspace(id: number) {
-    await useNuxtApp().$api(`${REST_API_COLLECTIONS_ENDPOINT}/${id}`, { method: 'DELETE' })
-    .then(async () => {
+  async function deleteWorkspace(id: number | null) {
+    if (id === null) return
+    return useNuxtApp().$api(`${REST_API_COLLECTIONS_ENDPOINT}/${id}`, { method: 'DELETE' })
+    .then(() => {
       // After successful deletion, remove the workspace from the store
-      workspaces.value = workspaces.value.filter(item => item.id != id)
+      workspaces.value = workspaces.value.filter((i) => i.id != id)
       // If we just deleted the workspace we were in, set it to null
       if (id === currentWorkspaceId.value) {
         currentWorkspaceId.value = null
@@ -51,9 +56,8 @@ export const useWorkspaceStore = defineStore('workspaces',  () => {
     })
   }
 
-  // Helper to reset whole store when user logs out
   function reset() {
-    workspaces.value = Array<Collection>()
+    workspaces.value = []
     currentWorkspaceId.value = null
   }
 
@@ -61,9 +65,10 @@ export const useWorkspaceStore = defineStore('workspaces',  () => {
     workspaces,
     currentWorkspaceId,
     workspacesAvailable,
+    workspaceLoaded,
     currentWorkspaceName,
     fetchWorkspaces,
-    createWorkspace,
+    createAndLoadWorkspace,
     deleteWorkspace,
     reset
   }

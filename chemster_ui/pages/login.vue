@@ -2,14 +2,14 @@
   <v-main>
     <v-container fluid fill-height>
       <v-row align="center" justify="center">
-        <v-col cols="12" sm="3">
-          <v-form v-model="validCredentials" validate-on="input" @submit.prevent="handleLogin" class="py-5">
+        <v-col align-self="center" cols="12" sm="3">
+          <v-form v-model="valid" validate-on="input" @submit.prevent="handleLogin" class="py-5">
             <v-text-field v-model="credentials.username" :rules="usernameRules" class="my-2" required />
             <v-text-field v-model="credentials.password" type="password" :rules="passwordRules" class="my-2" required />
-            <v-btn text="Login" :disabled="!validCredentials" color="primary" type="submit" class="mr-2" />
-            <v-btn text="Register" :disabled="!validCredentials" @click="handleRegister" class="ml-2" />
-            <v-alert v-if="loginFailed" text="Login failed. Please try again." icon="$error" color="error" class="mt-2" />
-            <v-alert v-if="registerFailed" text="Registration failed. Please try again." icon="$error" color="error" class="mt-2" />
+            <v-btn text="Login" :disabled="!valid" color="primary" type="submit" class="mr-2" />
+            <v-btn text="Register" :disabled="!valid" @click="handleRegister" class="ml-2" />
+            <v-alert v-if="failures.register" text="Registration failed. Please try again." icon="$error" color="error" class="mt-2" />
+            <v-alert v-if="failures.login" text="Login failed. Please try again." icon="$error" color="error" class="mt-2" />
           </v-form>
         </v-col>
       </v-row>
@@ -20,55 +20,45 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/store/auth'
 import { UI_INDEX_ENDPOINT } from '~/utils/constants'
+import { required, minChars, maxChars, alphaFirst, safeChars } from '~/utils/validation-rules'
 
-// Check authentication and redirect to index if already done
-// Note useAuthStore must be called directly here or it will be undefined due to import order
+// Check authentication and redirect to index if done
+// Note useAuthStore must be initialized directly in the callback here or it will be undefined due to import order
 definePageMeta({ middleware: [() => { if (useAuthStore().authenticated) { return navigateTo(UI_INDEX_ENDPOINT) } }] })
 
 // Load user authentication
 const authStore = useAuthStore()
 
-// Validate credentials in form
-const requiredRule = (str: string) => !!str || 'Required'
-const charLimitRule = (str: string) => str.length <= 32 || 'Limit 32 characters'
-const usernameRules = [ 
-  requiredRule,
-  (u: string) => /^[A-Za-z]+.*$/.test(u) || 'First character must be a letter',
-  (u: string) => u.length >= 3 || 'At least 3 characters required',
-  (u: string) => /^[\w\.]+$/.test(u) || 'Only letters, numbers, _, and . allowed',
-  charLimitRule
-]
-const passwordRules = [
-  requiredRule,
-  charLimitRule
-]
-
-// Track state of form inputs
+// Track user input credentials
 const credentials = reactive({ username: '', password: ''})
 
-// Track validity of form and login and registration calls
-// to show/hide alerts and enable/disable submission
-const validCredentials = ref(false)
-const loginFailed = ref(false)
-const registerFailed = ref(false)
+// Track input validity
+const valid = ref(false)
+
+// Track any failures from API calls
+const failures = reactive({ register: false, login: false })
+
+// Validate credentials in form
+const usernameRules = [required(), minChars(3), maxChars(32), alphaFirst(), safeChars(false)]
+const passwordRules = [required(), minChars(3), maxChars(32)]
 
 // On button click, log user in
 async function handleLogin() {
   await authStore.login(credentials)
   .then(async () => {
-    loginFailed.value = false
-    await navigateTo(UI_INDEX_ENDPOINT)
+    failures.login = false
+    navigateTo(UI_INDEX_ENDPOINT)
   })
-  .catch(() => { loginFailed.value = true })
+  .catch(() => failures.login = true)
 }
 
 // On button click, register and log in new user
 async function handleRegister() {
   await authStore.register(credentials)
   .then(async () => {
-    registerFailed.value = false
-    await navigateTo(UI_INDEX_ENDPOINT)
+    failures.register = false
+    navigateTo(UI_INDEX_ENDPOINT)
   })
-  .catch(() => { registerFailed.value = true })
+  .catch(() => failures.register = true)
 }
 </script>

@@ -1,4 +1,5 @@
 <template>
+  <!-- IDK why the header declaration here throws an error in VSCode...it works just fine in browser. Don't trust your IDE. -->
   <v-data-table-server
     disable-sort
     v-model:items-per-page="table.itemsPerPage"
@@ -21,12 +22,9 @@
 import { useChemicalStore } from '~/store/chemicals'
 import type { CTXChemical } from '~/utils/types'
 
-// Need runtime config to get URL for CompTox image retrieval
-const config = useRuntimeConfig()
-
 // Ensure table is updated anytime workspace/list chemicals change
 const chemicalStore = useChemicalStore()
-watch(storeToRefs(chemicalStore).currentDtxsids, () => fetchChemicalTableItems())
+watch(storeToRefs(chemicalStore).currentDtxsids, async () => await fetchChemicalTableItems())
 
 // Table options
 const table = reactive({
@@ -36,6 +34,7 @@ const table = reactive({
   loading: false
 })
 
+// Table headers and content definitions
 const headers = [
   { title: 'DTXSID', key: 'dtxsid' },
   { title: 'DTXCID', key: 'dtxcid' },
@@ -50,22 +49,30 @@ const headers = [
   { 
     title: 'Structure', 
     key: 'structure', 
-    value: (item: CTXChemical) => `${config.public.comptoxImageUrl}/${item.dtxsid}`
+    value: (item: CTXChemical) => `${useRuntimeConfig().public.comptoxImageUrl}/${item.dtxsid}`
   } 
 ]
 
+// Fetch a page of chemical details from DTXSIDs for server-side table rendering
 async function fetchChemicalTableItems() {
   table.loading = true
-  const start = (table.page - 1) * table.itemsPerPage
-  const end = start + table.itemsPerPage
-  const allDtxsids = chemicalStore.currentDtxsids.slice()
-  const pageDtxsids = allDtxsids.slice(start, end)
+  if (chemicalStore.chemicalsLoaded) {
+    const start = (table.page - 1) * table.itemsPerPage
+    const end = start + table.itemsPerPage
+    const allDtxsids = chemicalStore.currentDtxsids.slice()
+    const pageDtxsids = allDtxsids.slice(start, end)
 
-  table.items = await useNuxtApp().$ctx<Array<CTXChemical>>(
-    '/ctx/detail/search/by-dtxsid/?projection=ntatoolkit',
-    { method: 'POST', body: pageDtxsids }
-  )
-
-  table.loading = false
+    return useNuxtApp().$ctx<Array<CTXChemical>>(
+      '/ctx/detail/search/by-dtxsid/?projection=ntatoolkit',
+      { method: 'POST', body: pageDtxsids }
+    )
+    .then((resp) => {
+      table.items = resp
+      table.loading = false
+    })
+  } else {
+    table.items = []
+    table.loading = false
+  }
 }
 </script>

@@ -1,76 +1,92 @@
 import { defineStore } from 'pinia'
-import { useChemicalStore } from './chemicals'
-import { useWorkspaceStore } from './workspaces'
 import type { Credentials, Tokens } from '~/utils/types'
-import { API_ENDPOINT, UI_LOGIN_ENDPOINT } from '~/utils/constants'
-import { useListStore } from './lists'
+import { AUTH_HEADER_PREFIX, API_ENDPOINT, UI_LOGIN_ENDPOINT } from '~/utils/constants'
+
+const REGISTER = 'register'
+const LOGIN = 'login'
+const REFRESH = 'refresh'
+const LOGOUT = 'logout'
 
 export const useAuthStore = defineStore('auth',  () => {
-  const accessHeader = ref('')
-  const refreshHeader = ref('')
+  // Current value for the access token authorization header
+  const accessToken = ref('')
+  // Current value for the refresh token authorization header
+  const refreshToken = ref('')
+  // Name of the current user for display
   const currentUsername = ref('')
 
   // Getter to check if currently authenticated
-  const authenticated = computed(() => !!accessHeader.value)
+  const authenticated = computed(() => !!accessToken.value)
 
+  // Send authentication request with credentials to the register endpoint
   async function register(credentials: Credentials) {
-    await postCredentials(`${API_ENDPOINT}/register`, credentials)
+    return postCredentials(REGISTER, credentials)
   }
 
+  // Send authentication request with credentials to the login endpoint
   async function login(credentials: Credentials) {
-    await postCredentials(`${API_ENDPOINT}/login`, credentials)
+    return postCredentials(LOGIN, credentials)
   }
 
   // Refresh access token using refresh token
   async function refresh() {
-    await $fetch.raw<Tokens>(`${API_ENDPOINT}/refresh`, { headers: { Authorization: refreshHeader.value } })
-    .then((response) => {
-      accessHeader.value = `Bearer ${response._data?.access_token}`
-      return true
-    })
+    return $fetch.raw<Tokens>(`${API_ENDPOINT}/${REFRESH}`, makeHeaders(refreshToken.value))
+    .then((response) => accessToken.value = formatToken(response._data?.access_token))
     // If this fails, refresh token is also expired and user must log in again,
     // so reset the store and send them to the login page
-    .catch(async () => reset())
+    .catch(async () => exit())
   }
 
+  // Revoke both access and refresh token in separate calls,
+  // then clear the store and navigate to login
   async function logout() {
-    // Revoke both access and refresh token in separate calls,
-    // then clear the store and navigate to login
-    await Promise.allSettled(
-      [accessHeader.value, refreshHeader.value].map(async header => await $fetch.raw(`${API_ENDPOINT}/logout`, { headers: { Authorization: header } }))
-    ).finally(async () => reset())
+    return Promise.all(
+      [accessToken.value, refreshToken.value].map(
+        async (token) => $fetch.raw(`${API_ENDPOINT}/${LOGOUT}`, makeHeaders(token))
+      )).finally(async () => exit()
+    )
   }
 
   // Helper to make either register or login calls, since format is identical
   async function postCredentials(endpoint: string, credentials: Credentials) {
-    await $fetch.raw<Tokens>(endpoint, { method: 'POST', body: credentials })
+    return $fetch.raw<Tokens>(`${API_ENDPOINT}/${endpoint}`, { method: 'POST', body: credentials })
     .then((response) => {
       // Update the store with granted access and refresh tokens and current user identity
-      accessHeader.value = `Bearer ${response._data?.access_token}`
-      refreshHeader.value = `Bearer ${response._data?.refresh_token}`
+      accessToken.value = formatToken(response._data?.access_token)
+      refreshToken.value = formatToken(response._data?.refresh_token)
       currentUsername.value = credentials.username
-      return true
     })
-    .catch(async () => reset())
+    .catch(async () => exit())
   }
 
   // Helper to clear authentication store and return to login page on error or logout
-  // Also resets other data stores to avoid leaking data between users
-  async function reset() {
-    accessHeader.value = ''
-    refreshHeader.value = ''
+  async function exit() {
+    accessToken.value = ''
+    refreshToken.value = ''
     currentUsername.value = ''
-
-    useWorkspaceStore().reset()
-    useChemicalStore().reset()
-    useListStore().reset()
-
-    await navigateTo(UI_LOGIN_ENDPOINT)
-    return false
+    return navigateTo(UI_LOGIN_ENDPOINT)
   }
 
-  // refreshHeader isn't used elsewhere, but must be exported to be persisted
-  return { accessHeader, refreshHeader, currentUsername, authenticated, register, login, refresh, logout }
+  // Helper to add header prefix to token strings
+  function formatToken(token: string | undefined) {
+    return !!token ? AUTH_HEADER_PREFIX + token : ''
+  }
+
+  // Helper to build authorization headers using token
+  function makeHeaders(token: string) {
+    return { headers: { Authorization: token } }
+  }
+
+  return { 
+    accessToken, 
+    refreshToken, // refreshToken isn't accessed elsewhere, but must be exported to be persisted
+    currentUsername, 
+    authenticated, 
+    register, 
+    login, 
+    refresh, 
+    logout 
+  }
 },
-// Persist authorization state in cookies to avoid logout on every refresh
+// Persist auth state in cookies to avoid logout on every refresh
 { persist: { storage: piniaPluginPersistedstate.cookies() } })

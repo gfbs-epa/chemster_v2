@@ -1,13 +1,17 @@
+// User authentication credentials
 export type Credentials = { 
   username: string, 
   password: string 
 }
 
+// User authentication tokens
 export type Tokens = { 
   access_token: string, 
   refresh_token: string 
 }
 
+// A workspace, set, or slice of chemicals
+// Corresponds to SQLite database table collections
 export type Collection = { 
   id: number, 
   name: string, 
@@ -15,31 +19,21 @@ export type Collection = {
   owner_id: number 
 }
 
+// A chemical identifier
+// Corresponds to SQLite database table chemicals
 export type Chemical = {
   dtxsid: string
 }
 
-export type PropertyValue = {
-  dtxsid: string,
-  value: number,
-  name: string,
-  source: string,
-  unit: string
-}
-
+// A property record pulled from CTX APIs
 export type CTXProperty = {
   name: string,
-  value: number,
-  id: number,
   propertyId: string,
-  propType: string,
-  source: string,
-  description: string,
-  dtxsid: string,
-  dtxcid: string,
-  unit: string
+  propType: string
 }
 
+// A chemicals record pulled from CTX APIs
+// using the NTA Toolkit projection
 export type CTXChemical = {
   dtxsid: string,
   dtxcid: string,
@@ -60,6 +54,7 @@ export type CTXChemical = {
   totalAssays: number,
 }
 
+// A list record pulled from CTX APIs
 export type CTXList = {
   id: number,
   listName: string,
@@ -73,8 +68,15 @@ export type CTXList = {
   label: string
 }
 
-export type DashboardListItem = {
+// A trimmed list record from CTX APIs for use in selectors
+export type CTXListDisplay = {
   title: string,
   value: string,
   props: { subtitle: string }
+}
+
+export type PropertyData = {
+  columns: string[],
+  data: number[][],
+  index: string[]
 }

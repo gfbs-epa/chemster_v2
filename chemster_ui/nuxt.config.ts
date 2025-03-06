@@ -2,7 +2,6 @@ import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
-  devtools: { enabled: true },
   build: {
     transpile: ['vuetify'],
   },
@@ -15,7 +14,8 @@ export default defineNuxtConfig({
     },
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
-    'nuxt-plotly'
+    // Need { inject: true } to utilize $plotly actions in setup
+    ['nuxt-plotly', { inject: true }]
   ],
   vite: {
     vue: {
@@ -24,7 +24,7 @@ export default defineNuxtConfig({
       },
     },
     optimizeDeps: {
-      include: ["plotly.js-dist-min"],
+      include: ['plotly.js-dist-min'],
     }
   },
   runtimeConfig: {
