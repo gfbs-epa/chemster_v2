@@ -26,8 +26,8 @@
                   />
                 </v-col>
                 <v-col cols="2" class="text-center">
-                  <v-btn type="submit" text="Add Plot" color="secondary" 
-                  :disabled="!input.xprop || !input.yprop || plts.map((p) => p.key).includes(`${input.xprop}_${input.yprop}`)" />
+                  <v-btn type="submit" text="Add Plot" color="primary" 
+                  :disabled="!input.xprop || !input.yprop || pltkeys.includes(`${input.xprop}_${input.yprop}`)" />
                 </v-col>
               </v-row>
             </v-form>
@@ -37,7 +37,7 @@
     </v-row>
     <v-row no-gutters>
       <v-col v-for="(plt, i) in plts" cols="12" sm="4" >
-        <LazyVizPropertyScatterplotCard :xprop="plt.xprop" :yprop="plt.yprop" :key="plt.key" @close="plts.splice(i, 1)" />
+        <LazyPropertyScatterplotCard :xprop="plt.xprop" :yprop="plt.yprop" :key="plt.key" @close="plts.splice(i, 1)" />
       </v-col>
     </v-row>
   </v-container>
@@ -54,6 +54,7 @@ const input = reactive({
 })
 
 const plts = ref([]) as Ref<{ xprop: string, yprop: string, key: string }[]>
+const pltkeys = computed(() => plts.value.map((p) => p.key))
 
 function addPlot() {
   plts.value.push({

@@ -1,15 +1,14 @@
 <template>
   <v-card class="ma-2 bg-grey-lighten-3" flat>
-    <v-toolbar color="secondary" :title="dashboardStore.getPropertyNameById(prop)" />
     <v-card-text>
       <div ref="plt"></div>
-      <v-slider v-model="bins" min="10" max="100" step="10" color="secondary" class="pt-5 text-grey-darken-3">
+      <v-slider v-model="bins" min="10" max="100" step="10" color="primary" class="pt-5">
         <template v-slot:prepend>
           <v-text-field label="Bins" v-model="bins" density="compact" variant="outlined" type="number" style="width: 80px" hide-details />
           <v-tooltip activator="parent" location="bottom">Bins are optimized to fit data and may not match input exactly</v-tooltip>
         </template>
         <template v-slot:append>
-          <v-switch v-model="log" label="Log scale?" color="secondary" hide-details :disabled="prop.startsWith('log')" />
+          <v-switch v-model="log" label="Log scale?" color="primary" hide-details :disabled="prop.startsWith('log')" />
         </template>
       </v-slider>
     </v-card-text>
@@ -54,7 +53,8 @@ const layout: NuxtPlotlyLayout = {
   barmode: 'stack',
   dragmode: 'box',
   showlegend: true,
-  margin: { l: 40, r: 20, t: 20, b: 40 }
+  xaxis: { title: dashboardStore.getPropertyNameById(prop) },
+  margin: { t: 40 }
 }
 
 // Default config

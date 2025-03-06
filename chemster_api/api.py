@@ -6,7 +6,7 @@ from flask_restful import Api
 
 from config import db, ma
 from auth import init_auth
-from viz import init_viz
+from viz import viz
 from constants import CHEMSTER_UI_URL, API_ENDPOINT, SQLITE_DB_PATH
 from resources.collections_resource import CollectionsResource, COLLECTIONS_ENDPOINT
 from resources.chemicals_resource import ChemicalsResource, CHEMICALS_ENDPOINT
@@ -33,7 +33,7 @@ def create_app(sqlalchemy_database_uri):
     init_auth(app)
 
     # Register non-REST API routes to generate visualizations
-    init_viz(app)
+    app.register_blueprint(viz)
 
     # Start REST API and register endpoints
     rest_api = Api(app)

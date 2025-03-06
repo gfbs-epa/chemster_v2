@@ -2,7 +2,7 @@
   <v-container fluid fill-height>
     <v-row no-gutters>
       <v-col cols="12" sm="6" v-for="prop in propertyStore.currentPropertyData.columns">
-        <LazyVizPropertyHistogramCard :prop :key="prop" />
+        <LazyPropertyHistogramCard :prop :key="prop" />
       </v-col>
     </v-row>
   </v-container>

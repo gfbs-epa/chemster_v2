@@ -1,16 +1,11 @@
 <template>
   <v-card class="ma-2 bg-grey-lighten-3" flat>
-    <v-toolbar color="secondary" :title="`${dashboardStore.getPropertyNameById(xprop)} vs. ${dashboardStore.getPropertyNameById(yprop)}`">
-      <template v-slot:append>
-        <v-btn icon="mdi-close" size="small" @click="$emit('close')" />
-      </template>
-    </v-toolbar>
     <v-card-text>
       <div ref="plt"></div>
       <v-container class="pa-0">
-        <v-row class="align-center text-grey-darken-3 text-center">
-          <v-col><v-switch v-model="xlog" label="Log scale x?" color="secondary" hide-details :disabled="xprop.startsWith('log')" /></v-col>
-          <v-col ><v-switch v-model="ylog" label="Log scale y?" color="secondary" hide-details :disabled="yprop.startsWith('log')" /></v-col>
+        <v-row class="align-center text-center">
+          <v-col><v-switch v-model="xlog" label="Log scale x?" color="primary" hide-details :disabled="xprop.startsWith('log')" /></v-col>
+          <v-col ><v-switch v-model="ylog" label="Log scale y?" color="primary" hide-details :disabled="yprop.startsWith('log')" /></v-col>
         </v-row>
       </v-container>
     </v-card-text>
@@ -58,7 +53,9 @@ const data: Ref<NuxtPlotlyData> = ref([{
 const layout: NuxtPlotlyLayout = {
   dragmode: 'lasso',
   showlegend: true,
-  margin: { l: 40, r: 20, t: 20, b: 40 }
+  xaxis: { title: dashboardStore.getPropertyNameById(xprop) },
+  yaxis: { title: dashboardStore.getPropertyNameById(yprop) },
+  margin: { t: 40 }
 }
 
 // Default config

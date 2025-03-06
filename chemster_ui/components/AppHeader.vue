@@ -1,5 +1,6 @@
 <template>
-  <v-app-bar color="primary" title="ChemSTER: Chemical Space To Explorable Representations" flat>
+  <v-app-bar color="primary" flat>
+    <v-app-bar-title>ChemSTER: Chemical Space To Explorable Representations</v-app-bar-title>
     <template v-slot:append v-if="authStore.authenticated">
       <v-btn icon @click="handleLogout" class="ma-2">
         <v-icon>mdi-logout</v-icon>
