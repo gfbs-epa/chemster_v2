@@ -6,15 +6,13 @@ from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
 from config import db
-from constants import REST_API_ENDPOINT
 from models import Chemical, Collection, CollectionChemical
-from schemas import ChemicalSchema # pylint: disable=import-error
-from util import query_param_bool # pylint: disable=import-error
+from schemas import ChemicalSchema
+from util import REST_API_ENDPOINT, query_param_bool
 
 CHEMICALS_ENDPOINT = f'{REST_API_ENDPOINT}/chemicals'
 chemical_schema = ChemicalSchema()
 chemicals_schema = ChemicalSchema(many=True)
-
 
 class ChemicalsResource(Resource):
     """Route REST API calls to operate on chemical data."""
@@ -47,7 +45,8 @@ class ChemicalsResource(Resource):
 
     @jwt_required()
     def post(self):
-        """Create a new chemical from POST request on chemicals endpoint."""
+        """Create a new chemical or batch of chemicals from POST request on chemicals endpoint,
+        optionally associating the new chemical(s) with a provided collection ID."""
 
         collection_id = request.args.get('collection_id')
         if request.args.get('batch', default=False, type=query_param_bool):

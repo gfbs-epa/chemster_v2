@@ -6,10 +6,9 @@ from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 
 from config import db
-from constants import REST_API_ENDPOINT
+from util import REST_API_ENDPOINT, query_param_bool
 from models import Collection
-from schemas import CollectionSchema # pylint: disable=import-error
-from util import query_param_bool # pylint: disable=import-error
+from schemas import CollectionSchema
 
 COLLECTIONS_ENDPOINT = f'{REST_API_ENDPOINT}/collections'
 collection_schema = CollectionSchema()

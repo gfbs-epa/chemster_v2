@@ -1,16 +1,16 @@
 """Configure a Flask app and run locally if used as main."""
 
+from datetime import timedelta
 from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
 
-from config import db, ma
-from auth import init_auth
-from viz import viz
-from constants import CHEMSTER_UI_URL, API_ENDPOINT, SQLITE_DB_PATH
-from resources.collections_resource import CollectionsResource, COLLECTIONS_ENDPOINT
-from resources.chemicals_resource import ChemicalsResource, CHEMICALS_ENDPOINT
-from util import abs_path # pylint: disable=import-error
+from config import db, ma, jwt
+from util import CHEMSTER_UI_URL, API_ENDPOINT, SQLITE_DB_PATH, JWT_SECRET_KEY, abs_path
+from resources.collections import CollectionsResource, COLLECTIONS_ENDPOINT
+from resources.chemicals import ChemicalsResource, CHEMICALS_ENDPOINT
+from routes.auth import auth
+from routes.viz import viz
 
 
 def create_app(sqlalchemy_database_uri):
@@ -29,16 +29,21 @@ def create_app(sqlalchemy_database_uri):
     # Start CORS with front-end only access policy to all API endpoints
     CORS(app, resources={f'{API_ENDPOINT}/*': {'origins': CHEMSTER_UI_URL}})
 
-    # Start JWT manager and register non-REST API authentication routes
-    init_auth(app)
+    # Start JWT manager for authentication
+    app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1) # Access tokens last 1 hour by default
+    app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=7) # Refresh tokens last 7 days by default
+    jwt.init_app(app)
 
-    # Register non-REST API routes to generate visualizations
-    app.register_blueprint(viz)
-
-    # Start REST API and register endpoints
+    # Register REST API resources and routes
     rest_api = Api(app)
     rest_api.add_resource(CollectionsResource, COLLECTIONS_ENDPOINT, f'{COLLECTIONS_ENDPOINT}/<int:id>')
     rest_api.add_resource(ChemicalsResource, CHEMICALS_ENDPOINT)
+
+    # Register non-REST API routes for authentication
+    app.register_blueprint(auth)
+    # Register non-REST API routes for visualizations
+    app.register_blueprint(viz)
 
     return app
 

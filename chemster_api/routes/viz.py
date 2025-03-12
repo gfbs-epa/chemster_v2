@@ -5,7 +5,7 @@ from asyncio import gather
 from flask import abort, Blueprint, jsonify, make_response, request
 from flask_jwt_extended import jwt_required
 
-from constants import CTX_API_KEY, CTX_API_REQUEST_LIMIT, CTX_API_URL, VIZ_API_ENDPOINT
+from util import CTX_API_KEY, CTX_API_REQUEST_LIMIT, CTX_API_URL, VIZ_API_ENDPOINT
 
 CTX_API_PROPERTY_URL = f'{CTX_API_URL}/property/search/by-dtxsid/'
 
@@ -48,14 +48,11 @@ async def properties():
         for res in responses:
             results.extend(await res.json())
 
-    # Necessary to manually add JSON content type here because pandas to_json doesn't work the same as Flask jsonify
-    final = make_response(_process_results(results, property_source, property_ids))
-    final.headers['Content-Type'] = 'application/json'
-    return final
+    return jsonify(_process_results(results, property_source, property_ids))
 
 
 def _process_results(results_json, property_source, property_ids):
-    """Trim and filter results from CTX API queries, and convert to columnar JSON format."""
+    """Helper function to trim and filter results from CTX API queries and convert to dict in split format."""
 
     processed_results = [{'dtxsid': r['dtxsid'], 'propertyId': r['propertyId'], 'value': r['value']} 
                             for r in results_json
@@ -63,4 +60,4 @@ def _process_results(results_json, property_source, property_ids):
                                 and r['source'] == property_source
                                 and r['propertyId'] in property_ids]
 
-    return pd.DataFrame(processed_results).pivot(index='dtxsid', columns='propertyId', values='value').to_json(orient='split') if processed_results else jsonify({})
+    return pd.DataFrame(processed_results).pivot(index='dtxsid', columns='propertyId', values='value').to_dict(orient='split') if processed_results else {}
