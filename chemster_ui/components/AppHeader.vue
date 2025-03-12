@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/store/auth'
 import { useChemicalStore } from '~/store/chemicals'
-import { useDashboardStore } from '~/store/dashboard'
+import { useCTXStore } from '~/store/ctx'
 import { useSetStore } from '~/store/sets'
 import { usePropertyStore } from '~/store/properties'
 import { useWorkspaceStore } from '~/store/workspaces'
@@ -29,15 +29,17 @@ const stores = [
   useSetStore(),
   useChemicalStore(),
   usePropertyStore(),
-  useDashboardStore()
+  useCTXStore()
 ]
 
 // Open/close navigation drawer
-const drawer = ref(false)
+const drawer = ref(true)
 
-// User logout
+// Check drawer is always opened on login and closed on logout
+watch(storeToRefs(authStore).authenticated, (to) => drawer.value = to ? true : false)
+
+// Handle user logout
 async function handleLogout() {
-  drawer.value = false
   stores.forEach((store) => store.reset())
   return await authStore.logout()
 }

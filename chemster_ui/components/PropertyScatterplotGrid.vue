@@ -27,7 +27,7 @@
                 </v-col>
                 <v-col cols="2" class="text-center">
                   <v-btn type="submit" text="Add Plot" color="primary" 
-                  :disabled="!input.xprop || !input.yprop || pltkeys.includes(`${input.xprop}_${input.yprop}`)" />
+                    :disabled="!!!input.xprop || !!!input.yprop || plotStore.propertyScatterplotKeys.includes(`${input.xprop}_${input.yprop}`)" />
                 </v-col>
               </v-row>
             </v-container>
@@ -37,20 +37,28 @@
     </v-col>
   </v-row>
   <v-row>
-    <v-col v-for="(plt, i) in plts" cols="12" sm="4" >
-      <LazyPropertyScatterplotCard :xprop="plt.xprop" :yprop="plt.yprop" :key="plt.key" @close="plts.splice(i, 1)" />
+    <v-col v-for="(plt, i) in plotStore.propertyScatterplots" cols="12" sm="4" >
+      <LazyPropertyScatterplotCard 
+        hydrate-on-visible 
+        :xprop="plt.xprop" 
+        :yprop="plt.yprop" 
+        :key="plt.key" 
+        @close="plotStore.deletePropertyScatterplot(i)" 
+      />
     </v-col>
   </v-row>
 </template>
 
 <script setup lang="ts">
-import { useDashboardStore } from '~/store/dashboard'
+import { useCTXStore } from '~/store/ctx'
+import { usePlotStore } from '~/store/plots'
 import { usePropertyStore } from '~/store/properties'
 
 const propertyStore = usePropertyStore()
+const plotStore = usePlotStore()
 
 const displayProperties = computed(() => propertyStore.currentPropertyData.columns.map((p) => { 
-  return { title: useDashboardStore().getPropertyNameById(p), value: p } 
+  return { title: useCTXStore().propertyNames.get(p), value: p } 
 }))
 
 const input = reactive({
@@ -58,16 +66,8 @@ const input = reactive({
   yprop: ''
 })
 
-const plts = ref([]) as Ref<{ xprop: string, yprop: string, key: string }[]>
-const pltkeys = computed(() => plts.value.map((p) => p.key))
-
 function addPlot() {
-  plts.value.push({
-    xprop: input.xprop,
-    yprop: input.yprop,
-    key: `${input.xprop}_${input.yprop}`
-  })
-
+  plotStore.addPropertyScatterplot(input.xprop, input.yprop)
   input.xprop = ''
   input.yprop = ''
 }

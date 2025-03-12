@@ -10,10 +10,8 @@ export const useWorkspaceStore = defineStore('workspaces',  () => {
 
   // Getter to check if any workspaces exist for user
   const workspacesAvailable = computed(() => workspaces.value.length > 0)
-
   // Getter to check if a workspace is currently loaded
   const workspaceLoaded = computed(() => !!currentWorkspaceId.value)
-
   // Getter for current workspace name
   const currentWorkspaceName = computed(() => workspaces.value.find(item => item['id'] === currentWorkspaceId.value)?.name)
 
@@ -29,22 +27,25 @@ export const useWorkspaceStore = defineStore('workspaces',  () => {
     .then((resp) => workspaces.value = resp)
   }
 
-  // Create a new workspace and set it as active
+  // Create a new workspace and load it in the interface
   async function createAndLoadWorkspace(name: string) {
     return useNuxtApp().$api.raw<Collection>(
       REST_API_COLLECTIONS_ENDPOINT, 
       { method: 'POST', body: { name: name, super_id: config.public.masterCollectionId } }
     )
     .then(async (response) => {
-      // After successful creation, go to new workspace
+      // After successful creation, load the new workspace
       const newWorkspace = response._data as Collection
       workspaces.value.push(newWorkspace)
       currentWorkspaceId.value = newWorkspace.id
     })
+    // Do not catch exceptions, as they will propagate to trigger user alerts
   }
 
+  // Delete a workspace
   async function deleteWorkspace(id: number | null) {
-    if (id === null) return
+    if (id === null) return // Null check to take care of typing
+
     return useNuxtApp().$api(`${REST_API_COLLECTIONS_ENDPOINT}/${id}`, { method: 'DELETE' })
     .then(() => {
       // After successful deletion, remove the workspace from the store
@@ -56,6 +57,7 @@ export const useWorkspaceStore = defineStore('workspaces',  () => {
     })
   }
 
+  // Clear all values in the store on logout
   function reset() {
     workspaces.value = []
     currentWorkspaceId.value = null

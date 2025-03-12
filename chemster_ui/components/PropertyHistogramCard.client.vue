@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import type { NuxtPlotlyConfig, NuxtPlotlyData, NuxtPlotlyHTMLElement, NuxtPlotlyLayout } from 'nuxt-plotly'
-import { useDashboardStore } from '~/store/dashboard'
+import { useCTXStore } from '~/store/ctx'
 import { usePropertyStore } from '~/store/properties'
 
 const DEFAULT_BINS = 30
@@ -27,7 +27,6 @@ const { $plotly } = useNuxtApp()
 
 // Load property data store
 const propertyStore = usePropertyStore()
-const dashboardStore = useDashboardStore()
 
 // Retrieve input properties (ID of property for plotting)
 const props = defineProps({ prop: { type: String, required: true } })
@@ -53,7 +52,7 @@ const layout: NuxtPlotlyLayout = {
   barmode: 'stack',
   dragmode: 'box',
   showlegend: true,
-  xaxis: { title: dashboardStore.getPropertyNameById(prop) },
+  xaxis: { title: useCTXStore().propertyNames.get(prop) },
   margin: { t: 40 }
 }
 

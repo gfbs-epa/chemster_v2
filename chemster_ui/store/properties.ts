@@ -19,16 +19,17 @@ export const usePropertyStore = defineStore('property',  () => {
   }
 
   // Fetch property data from the back-end
-  async function fetchPropertyData(dtxsids: string[], ids: string[], source: string) {
+  async function fetchPropertyData(dtxsids: string[], propIds: string[], propSource: string) {
     return useNuxtApp().$api<PropertyData>(
       VIZ_API_PROPERTY_TABLE_ENDPOINT, 
-      { method: 'POST', body: dtxsids, query: { property_source: source, property_id: ids } }
+      { method: 'POST', body: dtxsids, query: { property_source: propSource, property_id: propIds } }
     )
     .then((response) => {
       currentPropertyData.value = response
     })
   }
 
+  // Clear all values in store on logout
   function reset() {
     currentPropertyData.value = { columns: [], data: [], index: [] } as PropertyData
   }

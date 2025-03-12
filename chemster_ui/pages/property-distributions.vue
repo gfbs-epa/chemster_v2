@@ -1,9 +1,7 @@
 <template>
   <v-container fluid fill-height>
     <LazyPropertyHistogramGrid hydrate-on-visible v-if="chemicalStore.chemicalsLoaded && propertyStore.propertyDataLoaded" />
-    <v-alert v-else-if="chemicalStore.chemicalsLoaded" color="grey-lighten-3" icon="$info" 
-      text="No properties loaded. Open the navigation drawer and click the thermometer icon to start loading properties." />
-    <UserDirectionAlerts v-else />
+    <LazyDataAvailabilityAlerts hydrate-on-visible require-properties v-else />
   </v-container>
 </template>
 

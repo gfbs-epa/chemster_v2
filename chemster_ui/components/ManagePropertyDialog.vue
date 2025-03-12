@@ -7,7 +7,7 @@
           <v-autocomplete
             label="Choose Properties"
             v-model="input.selectIds"
-            :items="dashboardStore.properties"
+            :items="ctxStore.properties"
             item-title="name"
             item-value="propertyId"
             class="my-2"
@@ -17,12 +17,15 @@
             clearable
             clear-on-select
           />
-          <v-radio-group inline v-model="input.selectSource" :color="COLOR" class="my-2">
+          <div>
+            Select property prediction source:
+          </div>
+          <v-radio-group v-model="input.selectSource" :color="COLOR" class="my-2">
             <v-radio v-for="source in CTX_PROPERTY_SOURCES" :label="source" :value="source" />
           </v-radio-group>
-          <v-btn type="submit" text="Load" :color="COLOR" :disabled="dialog.loading || !chemicalStore.chemicalsLoaded || input.selectIds.length == 0" />
+          <v-btn type="submit" text="Load" :color="COLOR" :loading="dialog.loading" 
+            :disabled="dialog.loading || !chemicalStore.chemicalsLoaded || input.selectIds.length == 0" />
         </v-form>
-        <v-progress-linear v-if="dialog.loading" :color="COLOR" bg-color="grey-lighten-3" class="mt-2" indeterminate />
         <v-alert v-if="dialog.loading && dialog.warn == 'big'" text="This is a large list! Property loading may take 30-60 seconds." icon="$warning" color="grey-lighten-3" class="mt-2" />
         <v-alert v-else-if="dialog.loading && dialog.warn == 'verybig'" text="This is a very large list! Property loading may take up to two minutes." icon="$warning" color="grey-lighten-3" class="mt-2" />
         <v-alert v-if="failures.load" text="Property loading failed. Please try again." icon="$error" color="error" class="mt-2" />
@@ -33,14 +36,14 @@
 
 <script setup lang="ts">
 import { useChemicalStore } from '~/store/chemicals'
-import { useDashboardStore } from '~/store/dashboard'
+import { useCTXStore } from '~/store/ctx'
 import { usePropertyStore } from '~/store/properties'
 import { CTX_PROPERTY_SOURCES } from '~/utils/constants'
 
 const COLOR = 'primary'
 
 // Load chemical and property data stores
-const dashboardStore = useDashboardStore()
+const ctxStore = useCTXStore()
 const chemicalStore = useChemicalStore()
 const propertyStore = usePropertyStore()
 

@@ -12,13 +12,11 @@ export const useChemicalStore = defineStore('chemicals',  () => {
   const chemicalsLoaded = computed(() => currentDtxsids.value.length > 0)
 
   // Fetch DTXSIDs from back-end API based on selected collections
-  async function fetchDtxsids(workspaceId: number, listIds: number[]) {
-    // Fetch specific lists if selected, otherwise entire workspace
-    const collectionIds = listIds.length > 0 ? listIds : [workspaceId]
+  async function fetchDtxsids(listIds: number[]) {
     // Run the API query, then map from chemical objects to DTXSID strings
     return useNuxtApp().$api<Array<Chemical>>(
       API_CHEMICALS_ENDPOINT, 
-      { query: { collection_id: collectionIds, recursive: true } }
+      { query: { collection_id: listIds, recursive: true } }
     )
     .then((chemicals) => currentDtxsids.value = chemicals.map((c) => c.dtxsid))
   }
@@ -34,6 +32,7 @@ export const useChemicalStore = defineStore('chemicals',  () => {
     )
   }
 
+  // Clear all values in store on logout
   function reset() {
     currentDtxsids.value = []
   }

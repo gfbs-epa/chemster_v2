@@ -3,8 +3,8 @@
     <v-row align="center" justify="center">
       <v-col align-self="center" cols="12" sm="3">
         <v-form v-model="valid" validate-on="input" @submit.prevent="handleLogin" class="py-5">
-          <v-text-field v-model="credentials.username" :rules="usernameRules" class="my-2" required />
-          <v-text-field v-model="credentials.password" type="password" :rules="passwordRules" class="my-2" required />
+          <v-text-field v-model="credentials.username" :rules="usernameRules" class="mb-2" required />
+          <v-text-field v-model="credentials.password" type="password" :rules="passwordRules" class="mb-2" required />
           <v-btn text="Login" :disabled="!valid" color="primary" type="submit" class="mr-2" />
           <v-btn text="Register" :disabled="!valid" @click="handleRegister" class="ml-2" />
           <v-alert v-if="failures.register" text="Registration failed. Please try again." icon="$error" color="error" class="mt-2" />
@@ -33,7 +33,7 @@ const valid = ref(false)
 const failures = reactive({ register: false, login: false })
 
 // Validate credentials in form
-const usernameRules = [required(), minChars(3), maxChars(32), alphaFirst(), safeChars(false)]
+const usernameRules = [required(), minChars(3), maxChars(32), alphaFirst(), safeChars()]
 const passwordRules = [required(), minChars(3), maxChars(32)]
 
 // On button click, log user in

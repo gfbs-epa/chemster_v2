@@ -18,3 +18,6 @@ export const UI_INDEX_ENDPOINT = '/'
 
 // Prefix for access/refresh tokens in authorization headers
 export const AUTH_HEADER_PREFIX = 'Bearer '
+
+// Suggested color palette for comparison sets (colorblind-friendly based on ColorBrewer Dark2)
+export const PALETTE = ["#1B9E77", "#D95F02", "#7570B3", "#E7298A", "#66A61E", "#E6AB02", "#A6761D", "#666666"]

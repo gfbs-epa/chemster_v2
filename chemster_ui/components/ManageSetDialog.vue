@@ -21,16 +21,14 @@
                 :items="setStore.sets"
                 item-title="name"
                 item-value="id"
-                persistent-hint
-                hint="Leave blank to use entire workspace"
-                class="mt-2 mb-4"
+                class="my-2"
                 single-line
                 multiple
                 chips
                 clearable
                 clear-on-select
               />
-              <v-btn :color="COLOR" type="submit" text="Select" />
+              <v-btn :color="COLOR" type="submit" text="Select" :disabled="input.select.length === 0" />
             </v-form>
           </v-tabs-window-item>
           <v-tabs-window-item key="add" value="add">
@@ -41,7 +39,7 @@
               <v-autocomplete
                 label="MMDB Harmonized Media Lists"
                 v-model="input.addMedia"
-                :items="dashboardStore.lists.media"
+                :items="ctxStore.lists.media"
                 item-title="title"
                 item-value="value"
                 multiple 
@@ -56,7 +54,7 @@
               <v-autocomplete
                 label="Other Chemical Lists"
                 v-model="input.addOther"
-                :items="dashboardStore.lists.other"
+                :items="ctxStore.lists.other"
                 item-title="title"
                 item-value="value"
                 class="my-2"
@@ -65,9 +63,9 @@
                 clearable
                 clear-on-select
               />
-              <v-btn :color="COLOR" type="submit" :disabled="dialog.loading || (input.addMedia.length + input.addOther.length === 0)">Add</v-btn>
+              <v-btn :color="COLOR" type="submit" text="Add" :loading="dialog.loading"
+                :disabled="dialog.loading || (input.addMedia.length + input.addOther.length === 0)" />
             </v-form>
-            <v-progress-linear v-if="dialog.loading" :color="COLOR" bg-color="grey-lighten-3" class="mt-2" indeterminate />
             <v-alert v-if="failures.add" text="List addition failed. Please try again." icon="$error" color="error" class="mt-2" />
           </v-tabs-window-item>
           <v-tabs-window-item key="delete" value="delete">
@@ -93,14 +91,14 @@
 
 <script setup lang="ts">
 import { useChemicalStore } from '~/store/chemicals'
-import { useDashboardStore } from '~/store/dashboard'
+import { useCTXStore } from '~/store/ctx'
 import { useSetStore } from '~/store/sets'
 import { useWorkspaceStore } from '~/store/workspaces'
 
 const COLOR = 'primary'
 
 // Load stored collection and chemical data for session
-const dashboardStore = useDashboardStore()
+const ctxStore = useCTXStore()
 const workspaceStore = useWorkspaceStore()
 const setStore = useSetStore()
 const chemicalStore = useChemicalStore()
@@ -125,8 +123,8 @@ const input = reactive({
 // Track return failures from API calls
 const failures = reactive({ add: false, delete: false })
 
-// Clear list selection reactively when workspace changes
-watch(storeToRefs(workspaceStore).currentWorkspaceId, () => input.select = [])
+// Reset list selection reactively when workspace changes
+watch(storeToRefs(setStore).setIds, () => input.select = setStore.setIds)
 
 // Watch dialog state change and ensure all inputs are at default every time
 watch(open, () => {
@@ -145,22 +143,16 @@ async function handleSelectSets() {
   setStore.currentSetIds = input.select
   open.value = false
   // Update displayed chemicals from the selected lists
-  await chemicalStore.fetchDtxsids(workspaceStore.currentWorkspaceId, setStore.currentSetIds)
+  await chemicalStore.fetchDtxsids(setStore.currentSetIds)
 }
 
 async function handleAddDashboardLists() {
   dialog.loading = true
-  // If no lists selected before add, force explicit selection of entire workspace
-  // Otherwise it will appear to filter without user input after sets are added
-  if (setStore.currentSetIds.length == 0) {
-    setStore.currentSetIds = setStore.sets.map((set) => set.id)
-  }
-
   await Promise.all(input.addMedia.concat(input.addOther).map(buildSetFromDashboardList))
   .catch(() => failures.add = true)
   .then(() => {
     open.value = false
-    chemicalStore.fetchDtxsids(workspaceStore.currentWorkspaceId, setStore.currentSetIds)
+    chemicalStore.fetchDtxsids(setStore.currentSetIds)
   })
 }
 
@@ -176,7 +168,13 @@ async function buildSetFromDashboardList(listName: string) {
 // Handle submission of set deletion to back-end
 async function handleDeleteSet() {
   return await setStore.deleteSet(input.delete)
-  .then(async () => chemicalStore.fetchDtxsids(workspaceStore.currentWorkspaceId, setStore.currentSetIds))
+  .then(async () => {
+    if (setStore.setsLoaded) {
+      chemicalStore.fetchDtxsids(setStore.currentSetIds)
+    } else {
+      chemicalStore.reset()
+    }
+  })
   .catch(() => failures.delete = true)
   .finally(() => open.value = false)
 }

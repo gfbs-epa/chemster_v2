@@ -56,7 +56,7 @@ export const useAuthStore = defineStore('auth',  () => {
       refreshToken.value = formatToken(response._data?.refresh_token)
       currentUsername.value = credentials.username
     })
-    .catch(async () => exit())
+    // Don't catch exceptions, since they will propagate to trigger registration/login alerts in the UI
   }
 
   // Helper to clear authentication store and return to login page on error or logout

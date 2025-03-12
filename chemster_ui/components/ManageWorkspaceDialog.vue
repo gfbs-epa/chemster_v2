@@ -60,6 +60,7 @@
 
 <script setup lang="ts">
 import { useChemicalStore } from '~/store/chemicals'
+import { usePropertyStore } from '~/store/properties'
 import { useSetStore } from '~/store/sets'
 import { useWorkspaceStore } from '~/store/workspaces'
 import { required, minChars, maxChars, alphaFirst, safeChars } from '~/utils/validation-rules'
@@ -70,6 +71,7 @@ const COLOR = 'primary'
 const workspaceStore = useWorkspaceStore()
 const setStore = useSetStore()
 const chemicalStore = useChemicalStore()
+const propertyStore = usePropertyStore()
 
 // Track open/closed state of dialog and tabs
 const open = ref(false)
@@ -97,15 +99,17 @@ watch(open, () => {
 
 // Track inputs and validation for workspace creation
 const validWorkspaceName = ref(false)
-const workspaceNameRules = [required(), minChars(3), maxChars(32), alphaFirst(), safeChars(true)]
+const workspaceNameRules = [required(), minChars(3), maxChars(32), alphaFirst(), safeChars()]
 
 // Handle submission of created workspace to back-end
 async function handleCreateWorkspace() {
   // Submit the new workspace and set it as current
   await workspaceStore.createAndLoadWorkspace(input.create)
-  .then(async () => setStore.fetchSets(workspaceStore.currentWorkspaceId))
-  .then(async () => {
-    chemicalStore.fetchDtxsids(workspaceStore.currentWorkspaceId, setStore.currentSetIds)
+  .then(() => {
+    // New workspace is always empty, so reset everything
+    setStore.reset()
+    chemicalStore.reset()
+    propertyStore.reset()
     open.value = false
   })
   .catch(() => failures.create = true)
@@ -116,14 +120,18 @@ async function handleCreateWorkspace() {
 async function handleSelectWorkspace() {
   // Update stored collection data
   workspaceStore.currentWorkspaceId = input.select
-  setStore.currentSetIds = []
   // Close dialog
   open.value = false
-  // Get lists for workspace
-  await Promise.all([
-    setStore.fetchSets(workspaceStore.currentWorkspaceId),
-    chemicalStore.fetchDtxsids(workspaceStore.currentWorkspaceId, setStore.currentSetIds)
-  ])
+  // Start with all lists and chemicals for workspace
+  await setStore.fetchSets(workspaceStore.currentWorkspaceId)
+  .then(async () => {
+    propertyStore.reset()
+    if (setStore.setsLoaded) {
+      chemicalStore.fetchDtxsids(setStore.currentSetIds)
+    } else {
+      chemicalStore.reset()
+    }
+  })
 }
 
 // Handle submission of workspace deletion to back-end
@@ -131,8 +139,15 @@ async function handleDeleteWorkspace() {
   await workspaceStore.deleteWorkspace(input.delete)
   .catch(() => failures.delete = true)
   .then(() => {
+    // If we just deleted the current workspace, reset everything
+    if (workspaceStore.currentWorkspaceId == null) {
+      setStore.reset()
+      chemicalStore.reset()
+      propertyStore.reset()
+    }
+    // Otherwise nothing in the current interface changes
+    // Then close the dialog
     open.value = false
-    chemicalStore.fetchDtxsids(workspaceStore.currentWorkspaceId, setStore.currentSetIds)
   })
 }
 </script>

@@ -1,17 +1,24 @@
 <template>
-  <v-footer app color="primary">
-    <div v-if="authStore.authenticated">
-      <strong>User:</strong> {{ authStore.currentUsername }}
-      <span v-if="workspaceStore.workspaceLoaded">/ <strong>Workspace:</strong> {{ workspaceStore.currentWorkspaceName }}</span>
-    </div>
+  <v-footer app color="grey-lighten-3">
+    <v-chip v-if="authStore.authenticated" prepend-icon="mdi-account" class="mr-1" density="comfortable" size="small" variant="flat">
+      {{ authStore.currentUsername }}
+    </v-chip>
+    <v-chip v-if="authStore.authenticated && workspaceStore.workspaceLoaded" prepend-icon="mdi-folder" class="mx-1" density="comfortable" size="small" variant="flat">
+      {{ workspaceStore.currentWorkspaceName }}
+    </v-chip>
+    <v-chip v-for="setName in setStore.currentSetNames" prepend-icon="mdi-flask-empty" class="mx-1" variant="flat" density="comfortable" size="small">
+      {{ setName }}
+    </v-chip>
   </v-footer>
 </template>
 
 <script setup lang="ts">
 import { useAuthStore } from '~/store/auth'
+import { useSetStore } from '~/store/sets'
 import { useWorkspaceStore } from '~/store/workspaces'
 
 // Load the user and workspace stores to display footer info if logged in
 const workspaceStore = useWorkspaceStore()
 const authStore = useAuthStore()
+const setStore = useSetStore()
 </script>

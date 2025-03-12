@@ -8,9 +8,12 @@ export const useSetStore = defineStore('sets',  () => {
   // Sets selected by user in interface
   const currentSetIds = ref(Array<number>())
 
+  // Getter for IDs of all available sets - used for selector defaults
+  const setIds = computed(() => sets.value.map((set) => set.id))
   // Getter to check if any sets are available
   const setsAvailable = computed(() => sets.value.length > 0)
-
+  // Getter to check if any sets are available
+  const setsLoaded = computed(() => currentSetIds.value.length > 0)
   // Getter for current set names
   const currentSetNames = computed(() => sets.value.filter((i) => currentSetIds.value.includes(i['id']))?.map((i) => i.name))
 
@@ -20,25 +23,33 @@ export const useSetStore = defineStore('sets',  () => {
       REST_API_COLLECTIONS_ENDPOINT, 
       { query: { super_id: workspaceId } }
     )
-    .then(async (resp) => sets.value = resp)
+    .then((resp) => {
+      // Always start by selecting all available sets
+      sets.value = resp
+      currentSetIds.value = setIds.value
+    })
   }
 
-  // Create a new set and add it to current selection
+  // Create a new set and load it in the interface
   async function createAndLoadSet(name: string, workspaceId: number) {
     return useNuxtApp().$api.raw<Collection>(
       REST_API_COLLECTIONS_ENDPOINT, 
       { method: 'POST', body: { name: name, super_id: workspaceId } }
     )
     .then((response) => {
+      // After successful creation, load the new set
       const newSet = response._data as Collection
       sets.value.push(newSet)
       currentSetIds.value.push(newSet.id)
       return newSet
     })
+    // Do not catch exceptions, as they will propagate to trigger user alerts
   }
 
+  // Delete an existing set
   async function deleteSet(id: number | null) {
-    if (id === null) return
+    if (id === null) return // Null check to take care of typing
+
     return useNuxtApp().$api(`${REST_API_COLLECTIONS_ENDPOINT}/${id}`, { method: 'DELETE' })
     .then(() => {
       // After successful deletion, remove the set from the store
@@ -48,6 +59,7 @@ export const useSetStore = defineStore('sets',  () => {
     })
   }
 
+  // Clear all values in the store on logout
   function reset() {
     sets.value = []
     currentSetIds.value = []
@@ -56,7 +68,9 @@ export const useSetStore = defineStore('sets',  () => {
   return {
     sets,
     currentSetIds,
+    setIds,
     setsAvailable,
+    setsLoaded,
     currentSetNames,
     fetchSets,
     createAndLoadSet,

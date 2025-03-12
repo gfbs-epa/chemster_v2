@@ -6,16 +6,15 @@ const CTX_LIST_ENDPOINT = `${CTX_ENDPOINT}/list/`
 const CTX_PROPERTY_ENDPOINT = `${CTX_ENDPOINT}/property/predicted/name`
 const MEDIA_LIST_PREFIX = 'MMDB'
 
-export const useDashboardStore = defineStore('dashboard',  () => {
+// Store for all app resources sourced from CTX APIs
+export const useCTXStore = defineStore('ctx',  () => {
   // Available lists on CompTox Chemicals Dashboard
   const lists = reactive({ media: [] as CTXListDisplay[], other: [] as CTXListDisplay[] })
   // Available properties from CTX APIs
   const properties = ref([]) as Ref<CTXProperty[]>
 
-  // Get the display name of a property from its ID
-  function getPropertyNameById(id: string) {
-    return properties.value.find((p) => p.propertyId == id)?.name
-  }
+  // Available properties as a map from property ID -> display name for visualization
+  const propertyNames = computed(() => new Map(properties.value.map((prop) => [prop.propertyId, prop.name])))
 
   // Fetch available public lists from CTX API
   async function fetchLists() {
@@ -23,17 +22,17 @@ export const useDashboardStore = defineStore('dashboard',  () => {
     .then((ctxLists) => {
       // Pick out properties of interest and format to use in selector lists
       ctxLists.forEach((ctxList) => {
-        let dispList = { 
+        let disp = { 
           title: ctxList.listName,
           value: ctxList.listName,
           props: { subtitle: `${ctxList.label} (${ctxList.chemicalCount})` }
         } as CTXListDisplay
 
         // Assign lists to media or "other" selector based on name
-        if (dispList.title.startsWith(MEDIA_LIST_PREFIX)) {
-          lists.media.push(dispList)
+        if (disp.title.startsWith(MEDIA_LIST_PREFIX)) {
+          lists.media.push(disp)
         } else {
-          lists.other.push(dispList)
+          lists.other.push(disp)
         }
       })
     })
@@ -50,6 +49,7 @@ export const useDashboardStore = defineStore('dashboard',  () => {
     return Promise.all([fetchLists(), fetchProperties()])
   }
 
+  // Clear all values in the store on logout
   function reset() {
     lists.media = []
     lists.other = []
@@ -59,7 +59,7 @@ export const useDashboardStore = defineStore('dashboard',  () => {
   return {
     lists,
     properties,
-    getPropertyNameById,
+    propertyNames,
     fetchAll,
     reset
   }
