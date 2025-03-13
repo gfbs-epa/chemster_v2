@@ -143,7 +143,7 @@ async function handleSelectSets() {
   setStore.currentSetIds = input.select
   open.value = false
   // Update displayed chemicals from the selected lists
-  await chemicalStore.fetchDtxsids(setStore.currentSetIds)
+  await chemicalStore.fetchChemicals(setStore.currentSetIds)
 }
 
 async function handleAddDashboardLists() {
@@ -152,7 +152,7 @@ async function handleAddDashboardLists() {
   .catch(() => failures.add = true)
   .then(() => {
     open.value = false
-    chemicalStore.fetchDtxsids(setStore.currentSetIds)
+    chemicalStore.fetchChemicals(setStore.currentSetIds)
   })
 }
 
@@ -170,7 +170,7 @@ async function handleDeleteSet() {
   return await setStore.deleteSet(input.delete)
   .then(async () => {
     if (setStore.setsLoaded) {
-      chemicalStore.fetchDtxsids(setStore.currentSetIds)
+      chemicalStore.fetchChemicals(setStore.currentSetIds)
     } else {
       chemicalStore.reset()
     }

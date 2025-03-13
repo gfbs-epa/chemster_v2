@@ -18,7 +18,7 @@ import { useAuthStore } from '~/store/auth'
 import { useChemicalStore } from '~/store/chemicals'
 import { useCTXStore } from '~/store/ctx'
 import { useSetStore } from '~/store/sets'
-import { usePropertyStore } from '~/store/properties'
+import { useVizStore } from '~/store/viz'
 import { useWorkspaceStore } from '~/store/workspaces'
 
 // Load auth store to do logout API call
@@ -28,7 +28,7 @@ const stores = [
   useWorkspaceStore(),
   useSetStore(),
   useChemicalStore(),
-  usePropertyStore(),
+  useVizStore(),
   useCTXStore()
 ]
 

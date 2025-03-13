@@ -2,17 +2,20 @@ import pandas as pd
 
 from aiohttp_retry import ExponentialRetry, RetryClient
 from asyncio import gather
-from flask import abort, Blueprint, jsonify, make_response, request
+from flask import abort, Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
 from util import CTX_API_KEY, CTX_API_REQUEST_LIMIT, CTX_API_URL, VIZ_API_ENDPOINT
 
+# Define CTX API URL, retry behavior, and headers for all requests
 CTX_API_PROPERTY_URL = f'{CTX_API_URL}/property/search/by-dtxsid/'
+RETRY_OPTIONS = ExponentialRetry(attempts=3)
+HEADERS = {'x-api-key': CTX_API_KEY, 'accept': 'application/json'}
 
 # Create a Flask blueprint to register all visualization API routes under the same prefix
 viz = Blueprint('viz', __name__, url_prefix=VIZ_API_ENDPOINT)
 
-@viz.route('/properties', methods=['POST'])
+@viz.route('/property-table', methods=['POST'])
 @jwt_required()
 async def properties():
     """Retrieve a table of requested property values from a given prediction source for a list of DTXSIDs."""
@@ -40,11 +43,9 @@ async def properties():
     # asyncio doesn't work in the general Flask context due to dependence on event loop
     # Makes this slower than it needs to be, but not enough of a concern to completely rearchitect around it
     # Timing varies but consistently under 30 s for ~4,000 compounds, which is satisfactory
-    retry_options = ExponentialRetry(attempts=3)
-    headers = {'x-api-key': CTX_API_KEY, 'accept': 'application/json'}
     results = []
-    async with RetryClient(retry_options=retry_options) as client:
-        responses = await gather(*[client.post(CTX_API_PROPERTY_URL, json=chunk, headers=headers) for chunk in dtxsid_chunks])
+    async with RetryClient(retry_options=RETRY_OPTIONS) as client:
+        responses = await gather(*[client.post(CTX_API_PROPERTY_URL, json=chunk, headers=HEADERS) for chunk in dtxsid_chunks])
         for res in responses:
             results.extend(await res.json())
 

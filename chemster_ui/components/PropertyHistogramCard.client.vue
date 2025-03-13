@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import type { NuxtPlotlyConfig, NuxtPlotlyData, NuxtPlotlyHTMLElement, NuxtPlotlyLayout } from 'nuxt-plotly'
 import { useCTXStore } from '~/store/ctx'
-import { usePropertyStore } from '~/store/properties'
+import { useVizStore } from '~/store/viz'
 
 const DEFAULT_BINS = 30
 
@@ -26,7 +26,7 @@ const DEFAULT_BINS = 30
 const { $plotly } = useNuxtApp()
 
 // Load property data store
-const propertyStore = usePropertyStore()
+const vizStore = useVizStore()
 
 // Retrieve input properties (ID of property for plotting)
 const props = defineProps({ prop: { type: String, required: true } })
@@ -39,11 +39,10 @@ const bins = ref(DEFAULT_BINS)
 
 // Reactive data for plotting
 const data: Ref<NuxtPlotlyData> = ref([{
-  name: 'Default',
-  x: propertyStore.getPropertyValuesArrayById(prop, false),
+  x: vizStore.getPropertyColumnValues(prop, false),
   type: 'histogram',
   nbinsx: DEFAULT_BINS,
-  marker: { color: '#424242' }
+  marker: { color: vizStore.colorIndex }
 }])
 
 // Default layout
@@ -51,9 +50,9 @@ const layout: NuxtPlotlyLayout = {
   histfunc: 'count',
   barmode: 'stack',
   dragmode: 'box',
-  showlegend: true,
-  xaxis: { title: useCTXStore().propertyNames.get(prop) },
-  margin: { t: 40 }
+  showlegend: false,
+  xaxis: { title: useCTXStore().propertyNamesMap.get(prop) },
+  margin: { t: 20, b: 40, l: 40, r: 20 }
 }
 
 // Default config
@@ -63,5 +62,5 @@ const config: NuxtPlotlyConfig = { scrollZoom: true, responsive: true }
 onMounted(() => { $plotly.newPlot(plt.value, data.value, layout, config) })
 
 // Watch the log scale and nbins selectors and update the plot when changed
-watch([log, bins], ([tolog, tobins]) => { $plotly.restyle(plt.value, { x: computed(() => propertyStore.getPropertyValuesArrayById(prop, tolog)), nbinsx: tobins }) })
+watch([log, bins], ([tolog, tobins]) => { $plotly.restyle(plt.value, { x: computed(() => vizStore.getPropertyColumnValues(prop, tolog)), nbinsx: tobins }) })
 </script>

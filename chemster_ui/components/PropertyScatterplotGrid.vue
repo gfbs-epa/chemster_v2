@@ -27,7 +27,7 @@
                 </v-col>
                 <v-col cols="2" class="text-center">
                   <v-btn type="submit" text="Add Plot" color="primary" 
-                    :disabled="!!!input.xprop || !!!input.yprop || plotStore.propertyScatterplotKeys.includes(`${input.xprop}_${input.yprop}`)" />
+                    :disabled="!!!input.xprop || !!!input.yprop || vizStore.propertyScatterplotKeys.includes(`${input.xprop}_${input.yprop}`)" />
                 </v-col>
               </v-row>
             </v-container>
@@ -37,13 +37,13 @@
     </v-col>
   </v-row>
   <v-row>
-    <v-col v-for="(plt, i) in plotStore.propertyScatterplots" cols="12" sm="4" >
+    <v-col v-for="(plt, i) in vizStore.propertyScatterplots" cols="12" sm="4" >
       <LazyPropertyScatterplotCard 
         hydrate-on-visible 
         :xprop="plt.xprop" 
         :yprop="plt.yprop" 
         :key="plt.key" 
-        @close="plotStore.deletePropertyScatterplot(i)" 
+        @close="vizStore.deletePropertyScatterplot(i)" 
       />
     </v-col>
   </v-row>
@@ -51,14 +51,12 @@
 
 <script setup lang="ts">
 import { useCTXStore } from '~/store/ctx'
-import { usePlotStore } from '~/store/plots'
-import { usePropertyStore } from '~/store/properties'
+import { useVizStore } from '~/store/viz'
 
-const propertyStore = usePropertyStore()
-const plotStore = usePlotStore()
+const vizStore = useVizStore()
 
-const displayProperties = computed(() => propertyStore.currentPropertyData.columns.map((p) => { 
-  return { title: useCTXStore().propertyNames.get(p), value: p } 
+const displayProperties = computed(() => vizStore.propertyTable.columns.map((p) => { 
+  return { title: useCTXStore().propertyNamesMap.get(p), value: p } 
 }))
 
 const input = reactive({
@@ -67,7 +65,7 @@ const input = reactive({
 })
 
 function addPlot() {
-  plotStore.addPropertyScatterplot(input.xprop, input.yprop)
+  vizStore.addPropertyScatterplot(input.xprop, input.yprop)
   input.xprop = ''
   input.yprop = ''
 }

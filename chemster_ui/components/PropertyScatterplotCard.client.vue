@@ -21,13 +21,13 @@
 <script setup lang="ts">
 import type { NuxtPlotlyConfig, NuxtPlotlyData, NuxtPlotlyHTMLElement, NuxtPlotlyLayout } from 'nuxt-plotly'
 import { useCTXStore } from '~/store/ctx'
-import { usePropertyStore } from '~/store/properties'
+import { useVizStore } from '~/store/viz'
 
 // Load plotly isntance
 const { $plotly } = useNuxtApp()
 
-// Load property data store
-const propertyStore = usePropertyStore()
+// Load visualization data store
+const vizStore = useVizStore()
 const ctxStore = useCTXStore()
 
 // Retrieve input properties (ID of property for plotting)
@@ -46,24 +46,23 @@ const ylog = ref(false)
 
 // Reactive data for plotting
 const data: Ref<NuxtPlotlyData> = ref([{
-  name: 'Workspace',
-  x: propertyStore.getPropertyValuesArrayById(xprop, false),
-  y: propertyStore.getPropertyValuesArrayById(yprop, false),
-  text: propertyStore.currentPropertyData.index,
+  x: vizStore.getPropertyColumnValues(xprop, false),
+  y: vizStore.getPropertyColumnValues(yprop, false),
+  text: vizStore.propertyTable.index,
   // Show DTXSID and coordinates on hover
   hovertemplate: '<b>%{text}</b><extra></extra><br />(%{x}, %{y})',
   type: 'scatter',
   mode: 'markers',
-  marker: { color: '#424242' }
+  marker: { color: vizStore.colorIndex }
 }])
 
 // Default layout
 const layout: NuxtPlotlyLayout = {
   dragmode: 'lasso',
-  showlegend: true,
-  xaxis: { title: ctxStore.propertyNames.get(xprop) },
-  yaxis: { title: ctxStore.propertyNames.get(yprop) },
-  margin: { t: 40 }
+  showlegend: false,
+  xaxis: { title: ctxStore.propertyNamesMap.get(xprop) },
+  yaxis: { title: ctxStore.propertyNamesMap.get(yprop) },
+  margin: { t: 20, r: 20, l: 60, b: 70 }
 }
 
 // Default config
@@ -73,6 +72,8 @@ const config: NuxtPlotlyConfig = { scrollZoom: true, responsive: true }
 onMounted(() => { $plotly.newPlot(plt.value, data.value, layout, config) })
 
 // Watch the log scale selectors and update the plot when changed
-watch(xlog, (toxlog) => { $plotly.restyle(plt.value, { x: computed(() => propertyStore.getPropertyValuesArrayById(xprop, toxlog)) }) })
-watch(ylog, (toylog) => { $plotly.restyle(plt.value, { y: computed(() => propertyStore.getPropertyValuesArrayById(yprop, toylog)) }) })
+watch(xlog, (toxlog) => { $plotly.restyle(plt.value, { x: computed(() => vizStore.getPropertyColumnValues(xprop, toxlog)) }) })
+watch(ylog, (toylog) => { $plotly.restyle(plt.value, { y: computed(() => vizStore.getPropertyColumnValues(yprop, toylog)) }) })
+// Watch and react to changes to the color map
+watch(storeToRefs(vizStore).colorIndex, (toColorIndex) => { $plotly.restyle(plt.value, { marker: { color: toColorIndex } }) })
 </script>

@@ -25,6 +25,11 @@ export type Chemical = {
   dtxsid: string
 }
 
+export type ChemicalCollections = {
+  chemical_dtxsid: string,
+  collection_ids: string
+}
+
 // A property record pulled from CTX APIs
 export type CTXProperty = {
   name: string,
@@ -75,8 +80,15 @@ export type CTXListDisplay = {
   props: { subtitle: string }
 }
 
-export type PropertyData = {
+export type PropertyTable = {
   columns: string[],
   data: number[][],
   index: string[]
+}
+
+export type HSLA = {
+  h: number,
+  s: number,
+  l: number,
+  a: number
 }

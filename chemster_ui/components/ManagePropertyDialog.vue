@@ -37,7 +37,7 @@
 <script setup lang="ts">
 import { useChemicalStore } from '~/store/chemicals'
 import { useCTXStore } from '~/store/ctx'
-import { usePropertyStore } from '~/store/properties'
+import { useVizStore } from '~/store/viz'
 import { CTX_PROPERTY_SOURCES } from '~/utils/constants'
 
 const COLOR = 'primary'
@@ -45,7 +45,7 @@ const COLOR = 'primary'
 // Load chemical and property data stores
 const ctxStore = useCTXStore()
 const chemicalStore = useChemicalStore()
-const propertyStore = usePropertyStore()
+const vizStore = useVizStore()
 
 // Track dialog open/close
 const open = ref(false)
@@ -72,14 +72,14 @@ watch(open, () => {
   dialog.loading = false
   dialog.warn = ''
   failures.load = false
-  input.selectIds = propertyStore.currentPropertyData?.columns || []
+  input.selectIds = vizStore.propertyTable?.columns || []
 })
 
 // Submit API call for property data on current chemicals
 async function handleLoadProperties() {
   dialog.loading = true
   dialog.warn = chemicalStore.currentDtxsids.length > 10000 ? 'verybig' : chemicalStore.currentDtxsids.length > 1000 ? 'big' : ''
-  await propertyStore.fetchPropertyData(chemicalStore.currentDtxsids, input.selectIds, input.selectSource)
+  await vizStore.fetchPropertyTable(chemicalStore.currentDtxsids, input.selectIds, input.selectSource)
   .catch(() => failures.load = true)
   .then(() => open.value = false)
   .finally(() => dialog.loading = false)

@@ -60,7 +60,7 @@
 
 <script setup lang="ts">
 import { useChemicalStore } from '~/store/chemicals'
-import { usePropertyStore } from '~/store/properties'
+import { useVizStore } from '~/store/viz'
 import { useSetStore } from '~/store/sets'
 import { useWorkspaceStore } from '~/store/workspaces'
 import { required, minChars, maxChars, alphaFirst, safeChars } from '~/utils/validation-rules'
@@ -71,7 +71,7 @@ const COLOR = 'primary'
 const workspaceStore = useWorkspaceStore()
 const setStore = useSetStore()
 const chemicalStore = useChemicalStore()
-const propertyStore = usePropertyStore()
+const vizStore = useVizStore()
 
 // Track open/closed state of dialog and tabs
 const open = ref(false)
@@ -109,7 +109,7 @@ async function handleCreateWorkspace() {
     // New workspace is always empty, so reset everything
     setStore.reset()
     chemicalStore.reset()
-    propertyStore.reset()
+    vizStore.reset()
     open.value = false
   })
   .catch(() => failures.create = true)
@@ -125,9 +125,9 @@ async function handleSelectWorkspace() {
   // Start with all lists and chemicals for workspace
   await setStore.fetchSets(workspaceStore.currentWorkspaceId)
   .then(async () => {
-    propertyStore.reset()
+    vizStore.reset()
     if (setStore.setsLoaded) {
-      chemicalStore.fetchDtxsids(setStore.currentSetIds)
+      chemicalStore.fetchChemicals(setStore.currentSetIds)
     } else {
       chemicalStore.reset()
     }
@@ -143,7 +143,7 @@ async function handleDeleteWorkspace() {
     if (workspaceStore.currentWorkspaceId == null) {
       setStore.reset()
       chemicalStore.reset()
-      propertyStore.reset()
+      vizStore.reset()
     }
     // Otherwise nothing in the current interface changes
     // Then close the dialog

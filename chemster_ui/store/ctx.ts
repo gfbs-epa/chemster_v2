@@ -14,7 +14,7 @@ export const useCTXStore = defineStore('ctx',  () => {
   const properties = ref([]) as Ref<CTXProperty[]>
 
   // Available properties as a map from property ID -> display name for visualization
-  const propertyNames = computed(() => new Map(properties.value.map((prop) => [prop.propertyId, prop.name])))
+  const propertyNamesMap = computed(() => new Map(properties.value.map((prop) => [prop.propertyId, prop.name])))
 
   // Fetch available public lists from CTX API
   async function fetchLists() {
@@ -59,7 +59,7 @@ export const useCTXStore = defineStore('ctx',  () => {
   return {
     lists,
     properties,
-    propertyNames,
+    propertyNamesMap,
     fetchAll,
     reset
   }

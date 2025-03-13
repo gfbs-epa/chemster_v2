@@ -8,6 +8,8 @@ export const useSetStore = defineStore('sets',  () => {
   // Sets selected by user in interface
   const currentSetIds = ref(Array<number>())
 
+  // Getter for set names as ID -> name map
+  const setNamesMap = computed(() => new Map(sets.value.map((set) => [set.id, set.name])))
   // Getter for IDs of all available sets - used for selector defaults
   const setIds = computed(() => sets.value.map((set) => set.id))
   // Getter to check if any sets are available
@@ -68,6 +70,7 @@ export const useSetStore = defineStore('sets',  () => {
   return {
     sets,
     currentSetIds,
+    setNamesMap,
     setIds,
     setsAvailable,
     setsLoaded,

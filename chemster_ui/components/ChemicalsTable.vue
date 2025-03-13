@@ -7,7 +7,7 @@
     v-model:page="table.page"
     :headers
     :items="table.items"
-    :items-length="chemicalStore.currentDtxsids.length"
+    :items-length="chemicalStore.currentChemicals.length"
     :loading="table.loading"
     item-value="dtxsid"
     @update:options="fetchChemicalTableItems"

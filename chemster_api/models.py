@@ -1,5 +1,7 @@
 """Define SQLAlchemy models for tables in this database."""
 
+from dataclasses import dataclass
+
 from config import db
 
 
@@ -47,7 +49,7 @@ class CollectionChemical(db.Model):
     chemical = db.relationship('Chemical')
 
 
-# Not connected to data model - just retains revoked JWTs from user logouts
+# Not connected to rest of data model - just retains revoked JWTs from user logouts
 class RevokedJWT(db.Model):
     __tablename__ = 'revoked_jwts'
     id = db.Column(db.Integer, primary_key=True)

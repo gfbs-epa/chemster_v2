@@ -6,9 +6,7 @@
     <v-chip v-if="authStore.authenticated && workspaceStore.workspaceLoaded" prepend-icon="mdi-folder" class="mx-1" density="comfortable" size="small" variant="flat">
       {{ workspaceStore.currentWorkspaceName }}
     </v-chip>
-    <v-chip v-for="setName in setStore.currentSetNames" prepend-icon="mdi-flask-empty" class="mx-1" variant="flat" density="comfortable" size="small">
-      {{ setName }}
-    </v-chip>
+    <SetColorChip v-for="id in setStore.currentSetIds" :id />
   </v-footer>
 </template>
 

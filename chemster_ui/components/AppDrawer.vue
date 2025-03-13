@@ -4,6 +4,7 @@
       <v-list-item nuxt to="/" title="Data Table" prepend-icon="mdi-table-large" />
       <v-list-item nuxt to="/property-distributions" title="Property Distributions" prepend-icon="mdi-chart-bar" />
       <v-list-item nuxt to="/property-relationships" title="Property Relationships" prepend-icon="mdi-chart-scatter-plot" />
+      <v-list-item nuxt disabled title="Structure Space" prepend-icon="mdi-rocket" />
     </v-list>
     <v-divider />
     <div class="pa-5 text-center">

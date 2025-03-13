@@ -1,14 +1,7 @@
 <template>
-  <v-container fluid fill-height>
-    <LazyPropertyScatterplotGrid hydrate-on-visible v-if="chemicalStore.chemicalsLoaded && propertyStore.propertyDataLoaded" />
-    <LazyDataAvailabilityAlerts hydrate-on-visible require-properties v-else />
-  </v-container>
+  <VizPage>
+    <template v-slot:viz>
+      <LazyPropertyScatterplotGrid />
+    </template>
+  </VizPage>
 </template>
-
-<script setup lang="ts">
-import { useChemicalStore } from '~/store/chemicals'
-import { usePropertyStore } from '~/store/properties';
-
-const chemicalStore = useChemicalStore()
-const propertyStore = usePropertyStore()
-</script>
