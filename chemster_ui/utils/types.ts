@@ -85,10 +85,3 @@ export type PropertyTable = {
   data: number[][],
   index: string[]
 }
-
-export type HSLA = {
-  h: number,
-  s: number,
-  l: number,
-  a: number
-}

@@ -1,5 +1,5 @@
 <template>
-  <v-chip prepend-icon="mdi-flask-empty" variant="flat" density="comfortable" size="small" class="mx-1" :color="vizStore.hslaToHex(color)">
+  <v-chip prepend-icon="mdi-flask-empty" variant="flat" density="comfortable" size="small" class="mx-1" :color="hslaToHex(color)">
     <v-menu v-model="picker" location="top" :close-on-content-click="false" activator="parent">
       <v-card>
         <v-color-picker v-model="color" hide-inputs mode="hex" />
@@ -16,6 +16,7 @@
 import { useSetStore } from '~/store/sets'
 import { useVizStore } from '~/store/viz'
 import { DEFAULT_COLOR } from '~/utils/constants'
+import { hslaToHex } from '~/utils/colors'
 
 const setStore = useSetStore()
 const vizStore = useVizStore()

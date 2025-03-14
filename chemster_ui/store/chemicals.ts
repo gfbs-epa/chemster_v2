@@ -11,7 +11,7 @@ export const useChemicalStore = defineStore('chemicals',  () => {
   // Getter to map chemicals to DTXSIDs for display queries
   const currentDtxsids = computed(() => currentChemicals.value.map((chemical) => chemical.chemical_dtxsid))
   // Map chemicals to set membership
-  const chemicalSetsMap = computed(() => new Map(currentChemicals.value.map((c) => [c.chemical_dtxsid, c.collection_ids.split(",").map((id) => +id)])))
+  const chemicalSetsMap = computed(() => new Map(currentChemicals.value.map((c) => [c.chemical_dtxsid, c.collection_ids.split(",").map((id) => +id).sort((a, b) => a - b)])))
   // Getter to check if any chemicals currently loaded
   const chemicalsLoaded = computed(() => currentChemicals.value.length > 0)
 

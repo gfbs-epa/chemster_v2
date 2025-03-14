@@ -66,7 +66,7 @@ const layout: NuxtPlotlyLayout = {
 }
 
 // Default config
-const config: NuxtPlotlyConfig = { scrollZoom: true, responsive: true }
+const config: NuxtPlotlyConfig = { scrollZoom: true }
 
 // On element mount, draw the plot from provided data
 onMounted(() => { $plotly.newPlot(plt.value, data.value, layout, config) })

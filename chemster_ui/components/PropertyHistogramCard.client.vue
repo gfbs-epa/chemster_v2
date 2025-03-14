@@ -38,29 +38,31 @@ const log = ref(false)
 const bins = ref(DEFAULT_BINS)
 
 // Reactive data for plotting
-const data: Ref<NuxtPlotlyData> = ref([{
-  x: vizStore.getPropertyColumnValues(prop, false),
-  type: 'histogram',
-  nbinsx: DEFAULT_BINS,
-  marker: { color: vizStore.colorIndex }
-}])
+const data: Ref<NuxtPlotlyData> = ref(vizStore.getHistogramTraces(prop, false, DEFAULT_BINS))
 
 // Default layout
-const layout: NuxtPlotlyLayout = {
+const layout: Ref<NuxtPlotlyLayout> = ref({
   histfunc: 'count',
   barmode: 'stack',
   dragmode: 'box',
   showlegend: false,
   xaxis: { title: useCTXStore().propertyNamesMap.get(prop) },
   margin: { t: 20, b: 40, l: 40, r: 20 }
-}
+})
 
 // Default config
-const config: NuxtPlotlyConfig = { scrollZoom: true, responsive: true }
+const config: NuxtPlotlyConfig = { scrollZoom: true }
 
 // On element mount, draw the plot from provided data
-onMounted(() => { $plotly.newPlot(plt.value, data.value, layout, config) })
+onMounted(() => { $plotly.newPlot(plt.value, data.value, layout.value, config) })
 
 // Watch the log scale and nbins selectors and update the plot when changed
-watch([log, bins], ([tolog, tobins]) => { $plotly.restyle(plt.value, { x: computed(() => vizStore.getPropertyColumnValues(prop, tolog)), nbinsx: tobins }) })
+watch([log, bins], ([tolog, tobins]) => {
+  data.value.forEach((trace, i) => $plotly.restyle(plt.value, { x: computed(() => vizStore.getPropertyColumnValues(prop, tolog)), nbinsx: tobins }, [i])) 
+})
+
+// Watch and react to changes to the color map
+watch(storeToRefs(vizStore).colorIndex, () => {
+  $plotly.react(plt.value, vizStore.getHistogramTraces(prop, log.value, bins.value), layout.value, config)
+})
 </script>

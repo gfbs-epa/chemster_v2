@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { DEFAULT_COLOR, VIZ_API_ENDPOINT } from '~/utils/constants'
-import type { HSLA, PropertyTable } from '~/utils/types'
+import type { PropertyTable } from '~/utils/types'
+import { hslaInterp, hslaToHex, type HSLA } from '~/utils/colors'
 import { useChemicalStore } from './chemicals'
 
 const VIZ_API_PROPERTY_TABLE_ENDPOINT = `${VIZ_API_ENDPOINT}/property-table`
@@ -16,36 +17,20 @@ export const useVizStore = defineStore('viz',  () => {
   // Getter to check if any properties are stored
   const propertyTableLoaded = computed(() => propertyTable.columns.length > 0)
   // Color index for all plots
-  // I really dislike the calling-another-store-in-a-store pattern but it is the only clean way to make this work :/
   const colorIndex = computed(() => propertyTable.index.map((d) => getSetColor(useChemicalStore().chemicalSetsMap.get(d) || [])))
   // Getters for keys of current scatterplots to prohibit duplication
   const propertyScatterplotKeys = computed(() => propertyScatterplots.value.map((p) => p.key))
 
+  // Compute the color for a plot point based on its set membership
   function getSetColor(setIds: number[]) {
     if (setIds.length === 1 && colorMap.value.has(setIds[0])) {
       return hslaToHex(colorMap.value.get(setIds[0]) || DEFAULT_COLOR)
     } else if (setIds.length >= 1) {
       // If a point is a member of more than one set, interpolate their colors in HSL space
-      let interpColor = { h: 0, s: 0, l: 0, a: 1 } as HSLA
-      let countColors = 0
-      setIds.forEach((id) => {
-        if (colorMap.value.has(id)) {
-          countColors++
-          let color = colorMap.value.get(id)
-          interpColor.h += color.h
-          interpColor.s += color.s
-          interpColor.l += color.l
-        }
-      })
-
-      if (countColors == 0) {
-        return hslaToHex(DEFAULT_COLOR)
-      } else {
-        interpColor.h /= countColors
-        interpColor.s /= countColors
-        interpColor.l /= countColors
-        return hslaToHex(interpColor)
-      }
+      const colors = setIds.map((id) => colorMap.value.get(id)).filter((col) => !!col)
+      // The circular HSLA interpolate-reduce strategy results in unequal weighting of colors
+      // but the results are much prettier than straight interpolation in any color space
+      return hslaToHex(colors.length === 0 ? DEFAULT_COLOR : colors.reduce(hslaInterp))
     } else {
       return hslaToHex(DEFAULT_COLOR)
     }
@@ -61,6 +46,18 @@ export const useVizStore = defineStore('viz',  () => {
       propertyTable.index = response.index
       propertyTable.columns = response.columns
       propertyTable.data = response.data
+    })
+  }
+
+  function getHistogramTraces(propertyId: string, log: boolean, bins: number) {
+    const allx = getPropertyColumnValues(propertyId, log)
+    return [...new Set(colorIndex.value)].map((color) => {
+      return {
+        x: allx.filter((val, i) => colorIndex.value[i] === color),
+        type: 'histogram',
+        nbinsx: bins,
+        marker: { color: color }
+      }
     })
   }
 
@@ -85,17 +82,6 @@ export const useVizStore = defineStore('viz',  () => {
     propertyScatterplots.value.splice(i, 1)
   }
 
-  // Helper function to convert HSLA colors -> hex for interface elements
-  function hslaToHex(hsla: HSLA) {
-    const a = hsla.s * Math.min(hsla.l, 1 - hsla.l)
-    const f = (n: number) => {
-      const k = (n + hsla.h / 30) % 12
-      const color = hsla.l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1)
-      return Math.round(255 * color).toString(16).padStart(2, '0')
-    }
-    return `#${f(0)}${f(8)}${f(4)}`
-  }
-
   function reset() {
     colorMap.value = new Map<number, HSLA>()
     propertyTable.index = []
@@ -111,11 +97,11 @@ export const useVizStore = defineStore('viz',  () => {
     propertyTableLoaded,
     fetchPropertyTable,
     getPropertyColumnValues,
+    getHistogramTraces,
     propertyScatterplots,
     propertyScatterplotKeys,
     addPropertyScatterplot,
     deletePropertyScatterplot,
-    hslaToHex,
     reset
   }
 })
