@@ -23,7 +23,7 @@ import { useWorkspaceStore } from '~/store/workspaces'
 
 // Load auth store to do logout API call
 const authStore = useAuthStore()
-// Set up the current data stores so they can be reset on logout
+// Load all current data stores so they can be reset on logout
 const stores = [
   useWorkspaceStore(),
   useSetStore(),
@@ -36,9 +36,9 @@ const stores = [
 const drawer = ref(true)
 
 // Check drawer is always opened on login and closed on logout
-watch(storeToRefs(authStore).authenticated, (to) => drawer.value = to ? true : false)
+watch(storeToRefs(authStore).authenticated, (to) => drawer.value = to)
 
-// Handle user logout
+// Reset all stored data, make back-end logout calls, and redirect to /login
 async function handleLogout() {
   stores.forEach((store) => store.reset())
   return await authStore.logout()

@@ -20,7 +20,7 @@ class ChemicalCollectionsResource(Resource):
 
     @jwt_required()
     def get(self):
-        """Route GET requests on chemicals endpoint."""
+        """Route GET requests on collection-chemicals endpoint, returning DTXSID + IDs of _all_ member collections."""
 
         if collection_ids := request.args.getlist('collection_id'):
             recursive = request.args.get('recursive', default=False, type=query_param_bool)
@@ -31,7 +31,7 @@ class ChemicalCollectionsResource(Resource):
 
 
     def _get_by_collection_ids(self, collection_ids, recursive):
-        # Group query for chemical DTXSIDs plus all collection IDs
+        # Group query for chemical DTXSIDs + _all_ collection IDs (as delimited string)
         base_query = db.select(CollectionChemical.chemical_dtxsid, db.func.group_concat(CollectionChemical.collection_id, ',').label('collection_ids'))\
                         .join(Collection).filter_by(owner_id=int(get_jwt_identity())).group_by(CollectionChemical.chemical_dtxsid)
         # Compose either direct or recursive query and filter base accordingly
@@ -45,10 +45,10 @@ class ChemicalCollectionsResource(Resource):
         return db.session.execute(query)
     
 
-    # This whole POST construction is not really RESTful but it is much more convenient to work with on the front-end
+    # This whole POST construction is not really RESTful but it is so much more convenient to work with on the front-end
     @jwt_required()
     def post(self):
-        """Add chemicals to a collection from a POST request, creating new chemicals if needed."""
+        """Add chemicals to a collection from a POST request with a list of DTXSIDs, creating new chemicals if needed."""
 
         # Check a collection ID was provided
         collection_id = request.args.get('collection_id')
@@ -58,41 +58,24 @@ class ChemicalCollectionsResource(Resource):
         # Check the given collection exists
         db.get_or_404(Collection, collection_id)
 
-        # Do single or batch insert
-        if request.args.get('batch', default=False, type=query_param_bool):
-            response = self._insert_batch(chemicals_schema.load(request.get_json()), collection_id)
-        else:
-            response = self._insert_one(chemical_schema.load(request.get_json()), collection_id)
+        # Do batch insert
+        response = self._insert_batch(request.get_json(), collection_id)
 
         return response, 201
-
-
-    def _insert_one(self, chemical, collection_id):
-        try:
-            # Insert the new chemical
-            db.session.add(chemical)
-            # Add it to the collection
-            db.session.add(CollectionChemical(chemical_dtxsid=chemical['dtxsid'], collection_id=collection_id))
-            db.session.commit()
-        except IntegrityError:
-            # Check for duplicate insertion
-            abort(409, message=f'Error creating chemical {chemical['dtxsid']}: chemical already exists')
-
-        return chemical_schema.dump(chemical)
     
 
-    def _insert_batch(self, chemicals, collection_id):
+    def _insert_batch(self, dtxsids, collection_id):
         """Do batch inserts, ignoring conflicts."""
 
-        for c in chemicals:
+        for dtxsid in dtxsids:
             # Check for an existing matching chemical
-            existing_chemical = db.session.get(Chemical, c['dtxsid'])
+            existing_chemical = db.session.get(Chemical, dtxsid)
             # Parameters to search and create collection-chemical mapping
-            params = { 'chemical_dtxsid': c['dtxsid'], 'collection_id': collection_id }
+            params = { 'chemical_dtxsid': dtxsid, 'collection_id': collection_id }
 
             if not existing_chemical:
                 # Otherwise add it and map it to the collection
-                db.session.add(Chemical(dtxsid=c['dtxsid']))
+                db.session.add(Chemical(dtxsid=dtxsid))
                 db.session.add(CollectionChemical(**params))
             else:
                 # If the chemical already exists, also check if it's already in the collection, and add it if not
@@ -102,4 +85,4 @@ class ChemicalCollectionsResource(Resource):
                     db.session.add(CollectionChemical(**params))
 
         db.session.commit()
-        return chemicals_schema.dump(chemicals)
+        return dtxsids

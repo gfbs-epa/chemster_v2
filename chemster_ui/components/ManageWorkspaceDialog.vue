@@ -1,7 +1,7 @@
 <template>
   <v-dialog activator="parent" v-model="open" max-width="800">
     <v-card>
-      <v-toolbar title="Manage Workspaces" :color="COLOR">
+      <v-toolbar title="Manage Workspaces" color="primary">
         <template v-slot:extension>
           <v-tabs grow v-model="tab">
             <v-tab value="select" :disabled="!workspaceStore.workspacesAvailable">Select Workspace</v-tab>
@@ -23,7 +23,7 @@
                 class="my-2"
                 single-line
               />
-              <v-btn :color="COLOR" 
+              <v-btn color="primary" 
                 type="submit" 
                 :disabled="!input.select || input.select == workspaceStore.currentWorkspaceId" 
                 text="Select" 
@@ -33,7 +33,7 @@
           <v-tabs-window-item key="create" value="create">
             <v-form @submit.prevent="handleCreateWorkspace" v-model="validWorkspaceName" validate-on="input">
               <v-text-field v-model="input.create" label="" :rules="workspaceNameRules" class="my-2" required />
-              <v-btn text="Create" :color="COLOR" type="submit" :disabled="!validWorkspaceName"/>
+              <v-btn text="Create" color="primary" type="submit" :disabled="!validWorkspaceName"/>
             </v-form>
             <v-alert v-if="failures.create" text="Workspace creation failed. Please try again." icon="$error" color="error" class="mt-2" />
           </v-tabs-window-item>
@@ -48,7 +48,7 @@
                 class="my-2"
                 single-line
               />
-              <v-btn :color="COLOR" type="submit" :disabled="!input.delete" text="Delete" />
+              <v-btn color="primary" type="submit" :disabled="!input.delete" text="Delete" />
             </v-form>
             <v-alert v-if="failures.delete" text="Workspace deletion failed. Please try again." icon="$error" color="error" class="mt-2" />
           </v-tabs-window-item>
@@ -64,8 +64,6 @@ import { useVizStore } from '~/store/viz'
 import { useSetStore } from '~/store/sets'
 import { useWorkspaceStore } from '~/store/workspaces'
 import { required, minChars, maxChars, alphaFirst, safeChars } from '~/utils/validation-rules'
-
-const COLOR = 'primary'
 
 // Load stored collection and chemical data for session
 const workspaceStore = useWorkspaceStore()

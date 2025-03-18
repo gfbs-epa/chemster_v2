@@ -6,7 +6,7 @@
     <v-chip v-if="authStore.authenticated && workspaceStore.workspaceLoaded" prepend-icon="mdi-folder" class="mx-1" density="comfortable" size="small" variant="flat">
       {{ workspaceStore.currentWorkspaceName }}
     </v-chip>
-    <SetColorChip v-for="id in setStore.currentSetIds" :id />
+    <LazySetColorChip v-for="id in setStore.currentSetIds" :id />
   </v-footer>
 </template>
 
@@ -15,7 +15,7 @@ import { useAuthStore } from '~/store/auth'
 import { useSetStore } from '~/store/sets'
 import { useWorkspaceStore } from '~/store/workspaces'
 
-// Load the user and workspace stores to display footer info if logged in
+// Load user and data stores to display footer info if logged in
 const workspaceStore = useWorkspaceStore()
 const authStore = useAuthStore()
 const setStore = useSetStore()

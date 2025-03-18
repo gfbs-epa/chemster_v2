@@ -15,9 +15,10 @@ HEADERS = {'x-api-key': CTX_API_KEY, 'accept': 'application/json'}
 # Create a Flask blueprint to register all visualization API routes under the same prefix
 viz = Blueprint('viz', __name__, url_prefix=VIZ_API_ENDPOINT)
 
+
 @viz.route('/property-table', methods=['POST'])
 @jwt_required()
-async def properties():
+async def property_table():
     """Retrieve a table of requested property values from a given prediction source for a list of DTXSIDs."""
 
     # Get the chemicals of interest
@@ -41,8 +42,7 @@ async def properties():
 
     # Note: have to reinitialize client on every request
     # asyncio doesn't work in the general Flask context due to dependence on event loop
-    # Makes this slower than it needs to be, but not enough of a concern to completely rearchitect around it
-    # Timing varies but consistently under 30 s for ~4,000 compounds, which is satisfactory
+    # Makes this slower than it needs to be, but still faster than using requests alone
     results = []
     async with RetryClient(retry_options=RETRY_OPTIONS) as client:
         responses = await gather(*[client.post(CTX_API_PROPERTY_URL, json=chunk, headers=HEADERS) for chunk in dtxsid_chunks])

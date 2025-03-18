@@ -1,7 +1,7 @@
 <template>
   <v-dialog activator="parent" v-model="open" max-width="800">
     <v-card>
-      <v-toolbar title="Manage Sets" :color="COLOR">
+      <v-toolbar title="Manage Sets" color="primary">
         <template v-slot:extension>
           <v-tabs grow v-model="dialog.tab">
             <v-tab value="select" :disabled="!setStore.setsAvailable">Select Sets</v-tab>
@@ -28,7 +28,7 @@
                 clearable
                 clear-on-select
               />
-              <v-btn :color="COLOR" type="submit" text="Select" :disabled="input.select.length === 0" />
+              <v-btn color="primary" type="submit" text="Select" :disabled="input.select.length === 0" />
             </v-form>
           </v-tabs-window-item>
           <v-tabs-window-item key="add" value="add">
@@ -63,7 +63,7 @@
                 clearable
                 clear-on-select
               />
-              <v-btn :color="COLOR" type="submit" text="Add" :loading="dialog.loading"
+              <v-btn color="primary" type="submit" text="Add" :loading="dialog.loading"
                 :disabled="dialog.loading || (input.addMedia.length + input.addOther.length === 0)" />
             </v-form>
             <v-alert v-if="failures.add" text="List addition failed. Please try again." icon="$error" color="error" class="mt-2" />
@@ -79,7 +79,7 @@
                 class="my-2"
                 single-line
               />
-              <v-btn :color="COLOR" type="submit" :disabled="!input.delete" text="Delete" />
+              <v-btn color="primary" type="submit" :disabled="!input.delete" text="Delete" />
             </v-form>
             <v-alert v-if="failures.delete" text="List deletion failed. Please try again." icon="$error" color="error" class="mt-2" />
           </v-tabs-window-item>
@@ -94,8 +94,6 @@ import { useChemicalStore } from '~/store/chemicals'
 import { useCTXStore } from '~/store/ctx'
 import { useSetStore } from '~/store/sets'
 import { useWorkspaceStore } from '~/store/workspaces'
-
-const COLOR = 'primary'
 
 // Load stored collection and chemical data for session
 const ctxStore = useCTXStore()

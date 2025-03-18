@@ -3,7 +3,7 @@
     <v-col cols="12">
       <v-card class="bg-grey-lighten-3" flat>
         <v-card-text>
-          <v-form @submit.prevent="addPlot">
+          <v-form @submit.prevent="handleAddPlot">
             <v-container class="pa-0">
               <v-row class="align-center" no-gutters>
                 <v-col cols="5">
@@ -53,18 +53,21 @@
 import { useCTXStore } from '~/store/ctx'
 import { useVizStore } from '~/store/viz'
 
+// Load visualization data store
 const vizStore = useVizStore()
 
+// Create display items for property selectors
 const displayProperties = computed(() => vizStore.propertyTable.columns.map((p) => { 
   return { title: useCTXStore().propertyNamesMap.get(p), value: p } 
 }))
 
+// Track user inputs
 const input = reactive({
   xprop: '',
   yprop: ''
 })
 
-function addPlot() {
+function handleAddPlot() {
   vizStore.addPropertyScatterplot(input.xprop, input.yprop)
   input.xprop = ''
   input.yprop = ''

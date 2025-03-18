@@ -30,8 +30,8 @@ export const useChemicalStore = defineStore('chemicals',  () => {
     return useNuxtApp().$api<Chemical[]>(API_COLLECTION_CHEMICALS_ENDPOINT, 
       {
         method: 'POST', 
-        query: { batch: true, collection_id: collection_id },
-        body: dtxsids.map((d) => { return { dtxsid: d } })
+        query: { collection_id: collection_id },
+        body: dtxsids
       }
     )
   }

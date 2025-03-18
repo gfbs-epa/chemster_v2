@@ -28,7 +28,7 @@ const { $plotly } = useNuxtApp()
 // Load property data store
 const vizStore = useVizStore()
 
-// Retrieve input properties (ID of property for plotting)
+// Retrieve input properties (ID of property for histogram)
 const props = defineProps({ prop: { type: String, required: true } })
 const { prop } = props
 
@@ -58,11 +58,13 @@ onMounted(() => { $plotly.newPlot(plt.value, data.value, layout.value, config) }
 
 // Watch the log scale and nbins selectors and update the plot when changed
 watch([log, bins], ([tolog, tobins]) => {
-  data.value.forEach((trace, i) => $plotly.restyle(plt.value, { x: computed(() => vizStore.getPropertyColumnValues(prop, tolog)), nbinsx: tobins }, [i])) 
+  data.value = vizStore.getHistogramTraces(prop, tolog, tobins)
+  $plotly.react(plt.value, data.value, layout.value, config)
 })
 
 // Watch and react to changes to the color map
 watch(storeToRefs(vizStore).colorIndex, () => {
-  $plotly.react(plt.value, vizStore.getHistogramTraces(prop, log.value, bins.value), layout.value, config)
+  data.value = vizStore.getHistogramTraces(prop, log.value, bins.value)
+  $plotly.react(plt.value, data.value, layout.value, config)
 })
 </script>
